@@ -2,16 +2,16 @@
 
 use think\facade\Db;
 /**
-* 用户发布动态-模型
+* 活动-模型
 * @author PENGKING
-* @since: 2022/10/08
-* Class UserDynamic
+* @since: 2022/10/09
+* Class Activity
 * @package app\admin\model
 */
-class UserDynamic extends BaseModel
+class Activity extends BaseModel
 {
 // 设置数据表名
-protected $name = "user_dynamic";
+protected $name = "activity";
 
 /**
 * 获取缓存信息
@@ -20,7 +20,7 @@ protected $name = "user_dynamic";
 * @throws \think\db\exception\DataNotFoundException
 * @throws \think\db\exception\ModelNotFoundException
 * @author PENGKING
-* @since: 2022/10/08
+* @since: 2022/10/09
 */
 public function getInfo($id)
 {
@@ -31,6 +31,29 @@ if ($info) {
                     $table = 'user';
                             $info[$table] = Db::name($table)->where('guid', $info['guid'])->where('mark', 1)->find();
                                         
+                            
+                                $info['cover_imgs'] = get_image_url($info['cover_imgs']);
+                
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
                             
                             
                             

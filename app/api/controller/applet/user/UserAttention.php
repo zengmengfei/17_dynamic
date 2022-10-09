@@ -33,7 +33,7 @@ class UserAttention extends ApiBase
      * @Apidoc\Title("关注取关接口")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("to_guid", type="string",require=true,desc="被关注人guid不可为空" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
@@ -52,15 +52,15 @@ class UserAttention extends ApiBase
         //数据验证
         $validate = new Validate;
         $validate->rule([
-            'user_guid' => 'require',
+            'guid' => 'require',
         ]);
         $validate->message([
-            'user_guid.require' => '用户唯一值不能为空',
+            'guid.require' => '用户唯一值不能为空',
         ]);
         if (!$validate->check($this->params)) {
             return $validate->getError();
         }
-        $userinfo = $this->wxUser->getUserInfoByUid($this->params['user_guid']);
+        $userinfo = $this->wxUser->getUserInfoByUid($this->params['guid']);
         if (empty($userinfo)) {
             return '用户信息不存在';
         }

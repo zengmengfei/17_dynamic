@@ -18,8 +18,8 @@ class Dynamic extends ApiBaseModel
         // 部门名称
         if (!empty($params['type']) && $params['type'] == 20) {
             $attentionModel = new Attention();
-            $guids = $attentionModel->getAttentionGuids($params['user_guid']);
-            $map[] = ['user_guid', 'in', $guids];
+            $guids = $attentionModel->getAttentionGuids($params['guid']);
+            $map[] = ['guid', 'in', $guids];
         }
         $page = !empty($params['page'])?$params['page']:1;
         $count = !empty($params['count'])?$params['count']:20;
@@ -34,7 +34,7 @@ class Dynamic extends ApiBaseModel
 
     // 我的动态列表
     public function myDynamicList($params) {
-        $map = ['user_guid' => $params['user_guid']];
+        $map = ['guid' => $params['guid']];
         $page = !empty($params['page'])?$params['page']:1;
         $count = !empty($params['count'])?$params['count']:20;
         $list = self::with(['user'])->where($map)->order(['create_time' => 'desc'])->paginate(['page' => $page,'list_rows'=> $count])->toArray();
@@ -73,7 +73,7 @@ class Dynamic extends ApiBaseModel
     public function addDynamic($params) {
         $saveData = [
             'dynamic_sn' => get_guid_v4(),
-            'user_guid' => $params['user_guid'],
+            'guid' => $params['guid'],
             'title' => $params['title'],
             'status' => $params['status'],
             'imgs' => $params['imgs'] ?? '',
@@ -101,6 +101,6 @@ class Dynamic extends ApiBaseModel
 
     public function user()
     {
-        return $this->hasOne(WxUser::class, 'user_guid', 'user_guid')->field(['user_guid', 'nickname', 'avatar']);
+        return $this->hasOne(WxUser::class, 'guid', 'guid')->field(['guid', 'nickname', 'avatar']);
     }
 }

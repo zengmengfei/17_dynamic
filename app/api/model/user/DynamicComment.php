@@ -24,8 +24,8 @@ class DynamicComment extends ApiBaseModel
         Db::startTrans();
         try {
             $thumbSave = [
-                'user_guid' => $params['user_guid'],
-                'uu_guid' => $dynamicInfo['user_guid'],
+                'guid' => $params['guid'],
+                'uu_guid' => $dynamicInfo['guid'],
                 'dynamic_sn' => $params['dynamic_sn'],
                 'content' => $params['content'],
                 'parent_id' => $parent_id,
@@ -58,7 +58,7 @@ class DynamicComment extends ApiBaseModel
 
     public function user()
     {
-        return $this->hasOne(WxUser::class, 'user_guid', 'user_guid')->field('user_guid,nickname,avatar');
+        return $this->hasOne(WxUser::class, 'guid', 'guid')->field('guid,nickname,avatar');
     }
 
     // 获取评论详情

@@ -29,7 +29,7 @@ if ($info) {
                     
                             
                     $table = 'user';
-                            $info[$table] = Db::name($table)->where('guid', $info['user_guid'])->where('mark', 1)->find();
+                            $info[$table] = Db::name($table)->where('guid', $info['guid'])->where('mark', 1)->find();
                                         
                     $table = 'uu';
                             $info[$table] = Db::name('tq_user')->where('guid', $info['uu_guid'])->where('mark', 1)->find();

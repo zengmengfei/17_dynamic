@@ -7,17 +7,7 @@
                     :label-col="{md: {span: 6}, sm: {span: 24}}"
                     :wrapper-col="{md: {span: 18}, sm: {span: 24}}">
                 <a-row>
-                                            
-                            <a-col :lg="6" :md="12" :sm="24" :xs="24">
-                                <a-form-item label="动态标题:">
-                                    <a-input
-                                            v-model:value.trim="where.title"
-                                            placeholder="请输入动态标题"
-                                            allow-clear/>
-                                </a-form-item>
-                            </a-col>
-                                                                                                
-                                                                        
+                    
                     <a-col :lg="6" :md="12" :sm="24" :xs="24">
                         <a-form-item style="padding-left:10px;" :wrapper-col="{span: 24}">
                             <a-space>
@@ -39,13 +29,13 @@
                     :scroll="{x: 'max-content'}">
                 <template #toolbar>
                     <a-space>
-                        <a-button type="primary" @click="openEdit()" v-if="permission.includes('sys:userdynamic:add')">
+                        <a-button type="primary" @click="openEdit()" v-if="permission.includes('sys:wxuser:add')">
                             <template #icon>
                                 <plus-outlined/>
                             </template>
                             <span>新建</span>
                         </a-button>
-                        <a-button type="danger" @click="removeBatch" v-if="permission.includes('sys:userdynamic:dall')">
+                        <a-button type="danger" @click="removeBatch" v-if="permission.includes('sys:wxuser:dall')">
                             <template #icon>
                                 <delete-outlined/>
                             </template>
@@ -54,6 +44,9 @@
                     </a-space>
                 </template>
                                                             
+                            <template #avatar="{ record }">
+                                <a-image :width="35" :src="record.avatar" />
+                            </template>
                                                                                                         
                                                                                                         
                                                                                                         
@@ -63,21 +56,19 @@
                                                                                                         
                                                                                                         
                                                                                                         
-                                                                                                                                    
-                                <template #status="{ text, record }">
-                                    <a-switch
-                                            :checked="text===1"
-                                            @change="(checked) => status(checked, record)"/>
-                                </template>
-                                                                                        
+                                                                                                        
+                                                                                                        
+                                                                                                        
+                                                                                                        
+                                                            
                 <template #action="{ record }">
                     <a-space>
-                        <a @click="openEdit(record)" v-if="permission.includes('sys:userdynamic:edit')">修改</a>
+                        <a @click="openEdit(record)" v-if="permission.includes('sys:wxuser:edit')">修改</a>
                         <a-divider type="vertical"/>
                         <a-popconfirm
-                                title="确定要删除此用户发布动态吗？"
+                                title="确定要删除此小程序用户吗？"
                                 @confirm="remove(record)">
-                            <a class="ele-text-danger" v-if="permission.includes('sys:userdynamic:delete')">删除</a>
+                            <a class="ele-text-danger" v-if="permission.includes('sys:wxuser:delete')">删除</a>
                         </a-popconfirm>
                     </a-space>
                 </template>
@@ -85,7 +76,7 @@
         </a-card>
     </div>
     <!-- 编辑弹窗 -->
-    <userdynamic-edit
+    <wxuser-edit
     v-model:visible="showEdit"
     :data="current"
     @done="reload"/>
@@ -99,14 +90,14 @@
         DeleteOutlined,
         ExclamationCircleOutlined
     } from '@ant-design/icons-vue';
-    import userdynamicEdit from './userdynamic-edit';
+    import wxuserEdit from './wxuser-edit';
 
     export default {
-        name: 'ExamUserDynamic',
+        name: 'ExamWxUser',
         components: {
             PlusOutlined,
             DeleteOutlined,
-            userdynamicEdit
+            wxuserEdit
         },
         computed: {
             ...mapGetters(["permission"]),
@@ -114,7 +105,7 @@
         data() {
             return {
                 // 表格数据接口
-                url: '/userdynamic/index',
+                url: '/wxuser/index',
                 // 表格列配置
                 columns: [
                     {
@@ -127,74 +118,90 @@
                     },
                                                             
                     {
-                        title: '用户guid',
+                        title: '头像地址',
+                        dataIndex: 'avatar',
+                        align: 'center',
+                        slots: {customRender: 'avatar'}
+                    },
+                                                                                                    
+                    {
+                        title: '',
                         dataIndex: 'guid',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '动态唯一sn',
-                        dataIndex: 'dynamic_sn',
+                        title: '小程序openid',
+                        dataIndex: 'openid',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '动态标题',
-                        dataIndex: 'title',
+                        title: '开发平台unionid',
+                        dataIndex: 'unionid',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '视频地址',
-                        dataIndex: 'video_url',
+                        title: '昵称',
+                        dataIndex: 'nickname',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '图片',
-                        dataIndex: 'imgs',
+                        title: '性别 ',
+                        dataIndex: 'gender',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '评论数',
-                        dataIndex: 'comment_num',
+                        title: '城市',
+                        dataIndex: 'city',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '浏览量',
-                        dataIndex: 'browse_num',
+                        title: '省',
+                        dataIndex: 'province',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '分享数',
-                        dataIndex: 'share_num',
+                        title: '国家',
+                        dataIndex: 'country',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '点赞数',
-                        dataIndex: 'thumb_num',
+                        title: '用户当前定位经度',
+                        dataIndex: 'longitude',
                         align: 'center'
                     },
                                                                                                     
                     {
-                        title: '发布动态定位地点',
-                        dataIndex: 'place',
+                        title: '用户当前定位纬度',
+                        dataIndex: 'latitude',
                         align: 'center'
                     },
-                                                                                                                        
+                                                                                                    
                     {
-                        title: '状态',
-                        dataIndex: 'status',
-                        sorter: true,
-                        width: 100,
-                        align: 'center',
-                        slots: {customRender: 'status'}
+                        title: '',
+                        dataIndex: 'session_key',
+                        align: 'center'
                     },
-                                                                                
+                                                                                                    
+                    {
+                        title: '临时验证token',
+                        dataIndex: 'token',
+                        align: 'center'
+                    },
+                                                                                                    
+                    {
+                        title: '最后一次授权时间',
+                        dataIndex: 'last_auth_time',
+                        align: 'center'
+                    },
+                                                            
                     {
                         title: '创建时间',
                         dataIndex: 'create_time',
@@ -244,7 +251,7 @@
             /* 删除单个 */
             remove(row) {
                 const hide = this.$message.loading('请求中..', 0);
-                this.$http.post('/userdynamic/delete', {id : row.id}).then(res => {
+                this.$http.post('/wxuser/delete', {id : row.id}).then(res => {
                     hide();
                     if (res.data.code === 0) {
                         this.$message.success(res.data.msg);
@@ -265,12 +272,12 @@
                 }
                 this.$confirm({
                     title: '提示',
-                    content: '确定要删除选中的用户发布动态吗?',
+                    content: '确定要删除选中的小程序用户吗?',
                     icon: createVNode(ExclamationCircleOutlined),
                     maskClosable: true,
                     onOk: () => {
                         const hide = this.$message.loading('请求中..', 0);
-                        this.$http.post('/userdynamic/delete', {
+                        this.$http.post('/wxuser/delete', {
                             id: this.selection.map(d => d.id)
                         }).then(res => {
                             hide();
@@ -292,25 +299,7 @@
                 this.current = row;
                 this.showEdit = true;
             },
-                                                                                                                                        
-            /* 修改状态 */
-                status(checked, row) {
-        let params = Object.assign({}, {
-            id : row.id,
-        status : checked ? 1 : 2,
-    });
-        this.$http.post('/userdynamic/status', params).then(res => {
-            if (res.data.code === 0) {
-                row.status = checked ? 1 : 2;
-                this.$message.success(res.data.msg);
-            } else {
-                this.$message.error(res.data.msg);
-            }
-        }).catch(e => {
-            this.$message.error(e.message);
-        });
-    },
-        
+                                                                                                                                                                                
     }
     }
 </script>

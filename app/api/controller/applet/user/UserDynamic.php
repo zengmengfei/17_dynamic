@@ -33,7 +33,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("动态列表")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("type", type="string",require=false,desc="查看类型" )
      * @Apidoc\Param("page", type="string",require=true,desc="分页" )
      * @Apidoc\Param("count", type="string",require=true,desc="每页条数" )
@@ -50,7 +50,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("我的动态")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("page", type="string",require=true,desc="分页" )
      * @Apidoc\Param("count", type="string",require=true,desc="每页条数" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
@@ -66,7 +66,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("动态详情")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("dynamic_sn", type="string",require=true,desc="动态唯一sn" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
@@ -81,7 +81,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("添加动态")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("title", type="string",require=true,desc="动态标题" )
      * @Apidoc\Param("status", type="int",require=true,desc="动态状态" )
      * @Apidoc\Param("imgs", type="string",require=false,desc="图片" )
@@ -112,7 +112,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("用户评论")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("dynamic_sn", type="string",require=true,desc="动态唯一标识" )
      * @Apidoc\Param("content", type="string",require=true,desc="评论内容" )
      * @Apidoc\Param("parent_id", type="int",require=false,desc="评论上级" )
@@ -156,7 +156,7 @@ class UserDynamic extends ApiBase
      * @Apidoc\Title("用户点赞")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("dynamic_sn", type="string",require=true,desc="动态sn" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
@@ -164,7 +164,7 @@ class UserDynamic extends ApiBase
         if ($this->userCheck() !== true) return err_msg('用户未登录');
         if (empty($this->params['dynamic_sn'])) return err_msg('动态唯一标识未传递');
         $thumbModel = new DynamicThumb();
-        $res = $thumbModel->changeThumbs($this->userinfo['user_guid'], $this->params['dynamic_sn']);
+        $res = $thumbModel->changeThumbs($this->userinfo['guid'], $this->params['dynamic_sn']);
         return $res?ok_msg('操作成功', $this->params):err_msg('操作失败');
     }
 
@@ -187,15 +187,15 @@ class UserDynamic extends ApiBase
         //数据验证
         $validate = new Validate;
         $validate->rule([
-            'user_guid' => 'require',
+            'guid' => 'require',
         ]);
         $validate->message([
-            'user_guid.require' => '用户唯一值不能为空',
+            'guid.require' => '用户唯一值不能为空',
         ]);
         if (!$validate->check($this->params)) {
             return $validate->getError();
         }
-        $userinfo = $this->wxUser->getUserInfoByUid($this->params['user_guid']);
+        $userinfo = $this->wxUser->getUserInfoByUid($this->params['guid']);
         if (empty($userinfo)) {
             return '用户信息不存在';
         }

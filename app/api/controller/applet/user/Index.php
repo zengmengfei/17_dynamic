@@ -30,7 +30,7 @@ class Index extends ApiBase
      * @Apidoc\Title("更新用户信息")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一标识" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一标识" )
      * @Apidoc\Param("nickname", type="string",require=true,desc="昵称" )
      * @Apidoc\Param("avatar", type="string",require=true,desc="头像" )
      * @Apidoc\Param("gender", type="string",require=true,desc="性别" )
@@ -72,9 +72,9 @@ class Index extends ApiBase
 
 
     /**
-     * @Apidoc\Title("根据用户user_guid获取用户详情")
+     * @Apidoc\Title("根据用户guid获取用户详情")
      * @Apidoc\Author("pengking")
-     * @Apidoc\Param("user_guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function get_user_info(){
@@ -86,15 +86,15 @@ class Index extends ApiBase
         //数据验证
         $validate = new Validate;
         $validate->rule([
-            'user_guid' => 'require',
+            'guid' => 'require',
         ]);
         $validate->message([
-            'user_guid.require' => '用户唯一值不能为空',
+            'guid.require' => '用户唯一值不能为空',
         ]);
         if (!$validate->check($this->params)) {
             return $validate->getError();
         }
-        $userinfo = $this->wxUser->getUserInfoByUid($this->params['user_guid']);
+        $userinfo = $this->wxUser->getUserInfoByUid($this->params['guid']);
         if (empty($userinfo)) {
             return '用户信息不存在';
         }

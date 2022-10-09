@@ -19,23 +19,23 @@ class Attention extends ApiBaseModel
         $wxUser = new WxUser();
         $toUserInfo = $wxUser->getUserInfoByUid($params['to_guid']);
         if (empty($toUserInfo)) return false;
-        $attentionInfo = self::where(['from_guid' => $params['user_guid'], 'to_guid' => $params['to_guid']])->find();
+        $attentionInfo = self::where(['from_guid' => $params['guid'], 'to_guid' => $params['to_guid']])->find();
         Db::startTrans();
         try {
             if (empty($attentionInfo)) {
                 $saveData = [
-                    'from_guid' => $params['user_guid'],
+                    'from_guid' => $params['guid'],
                     'to_guid' => $params['to_guid'],
                 ];
                 self::save($saveData);
-                $wxUserinfo::where('user_guid', $params['to_guid'])->inc('fans_num', 1)->update();
+                $wxUserinfo::where('guid', $params['to_guid'])->inc('fans_num', 1)->update();
             } else {
                 $status = ($attentionInfo['status'] == 10)?20:10;
                 $attentionInfo::update(['status' => $status], ['id' => $attentionInfo['id']]);
                 if ($status == 10) {
-                    $wxUserinfo::where('user_guid', $params['to_guid'])->inc('fans_num', 1)->update();
+                    $wxUserinfo::where('guid', $params['to_guid'])->inc('fans_num', 1)->update();
                 } else {
-                    $wxUserinfo::where('user_guid', $params['to_guid'])->dec('fans_num', 1)->update();
+                    $wxUserinfo::where('guid', $params['to_guid'])->dec('fans_num', 1)->update();
                 }
             }
             Db::commit();
@@ -48,8 +48,8 @@ class Attention extends ApiBaseModel
 
 
     // 获取关注人的guids
-    public function getAttentionGuids($user_guid) {
-        return self::where(['from_guid' => $user_guid, 'status' => 10])->column('to_guid');
+    public function getAttentionGuids($guid) {
+        return self::where(['from_guid' => $guid, 'status' => 10])->column('to_guid');
     }
 
 

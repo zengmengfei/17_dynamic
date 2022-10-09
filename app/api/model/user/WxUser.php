@@ -31,22 +31,22 @@ class WxUser extends ApiBaseModel
                  if (!empty($params['country'])) $saveData['country'] = $params['country'];
                  if (!empty($params['session_key'])) $saveData['session_key'] = $params['session_key'];
                  // 新增用户
-                 $user_guid = get_guid_v4();
-                 $saveData['user_guid'] = $user_guid;
-                 $saveData['token'] = $jwt->getToken($user_guid);
+                 $guid = get_guid_v4();
+                 $saveData['guid'] = $guid;
+                 $saveData['token'] = $jwt->getToken($guid);
                  $saveData['openid'] = $openid;
                  $saveData['unionid'] = $param['unionid'] ?? null;
                  self::save($saveData);
-                 $infoData = ['user_guid' => $user_guid];
+                 $infoData = ['guid' => $guid];
                  if (!empty($params['mobile'])) $infoData['mobile'] = $params['mobile'];
                  $userInfoModel::save($infoData);
              } else {
                  if (!is_array($userinfo)) $userinfo = $userinfo->toArray();
-                 $saveData['token'] = $jwt->getToken($userinfo['user_guid']);
+                 $saveData['token'] = $jwt->getToken($userinfo['guid']);
                  // 更新用户
                  self::where('openid', $openid)->update($saveData);
                  if (!empty($params['mobile']) && (empty($userinfo['info']['mobile']) || $userinfo['info']['mobile'] != $params['mobile'])) {
-                     $userInfoModel::where('user_guid', $userinfo['user_guid'])->update(['mobile' => $params['mobile']]);
+                     $userInfoModel::where('guid', $userinfo['guid'])->update(['mobile' => $params['mobile']]);
                  }
              }
              // 提交事务
@@ -61,7 +61,7 @@ class WxUser extends ApiBaseModel
 
     // 更新用户信息
     public function updateUser($params) {
-        $user_guid = $params['user_guid'];
+        $guid = $params['guid'];
         $userInfoModel = new WxUserinfo();
         Db::startTrans();
         try {
@@ -71,7 +71,7 @@ class WxUser extends ApiBaseModel
                 'gender' => $params['gender'] ?? 0,
             ];
             // 更新用户
-            self::where('user_guid', $user_guid)->update($userData);
+            self::where('guid', $guid)->update($userData);
             $infoData = [
                 'mobile' => $params['mobile'] ?? '',
                 'name' => $params['name'] ?? '',
@@ -89,7 +89,7 @@ class WxUser extends ApiBaseModel
                 'privacy_status' => $params['privacy_status'] ?? 10,
             ];
             // 更新用户详情
-            $userInfoModel::where('user_guid', $user_guid)->update($infoData);
+            $userInfoModel::where('guid', $guid)->update($infoData);
             Db::commit();
             return true;
         } catch (\Exception $e) {
@@ -100,15 +100,15 @@ class WxUser extends ApiBaseModel
 
     }
 
-    // 根据user_guid|openid|token查询用户信息
+    // 根据guid|openid|token查询用户信息
     public function getUserInfoByUid($uid)
     {
-        return self::where('user_guid|openid|token', $uid)->with('info')->find();
+        return self::where('guid|openid|token', $uid)->with('info')->find();
     }
 
 
     public function info()
     {
-        return $this->hasOne(WxUserinfo::class, 'user_guid', 'user_guid');
+        return $this->hasOne(WxUserinfo::class, 'guid', 'guid');
     }
 }

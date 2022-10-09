@@ -275,22 +275,15 @@ abstract class  BaseModel extends CacheModel
             if (isset($info['create_user']) && $info['create_user']) {
                 $info['create_user_name'] = $userAll[$info['create_user']]['realname'];
             }
-            // 添加时间
-            if (isset($info['create_time']) && $info['create_time']) {
-//                $info['create_time'] = date('Y-m-d H:i:s', $info['create_time']);
-            }
-            if (isset($info['uu_guid']) && $info['uu_guid']) {
-                $tq_info = Db::name('tq_user')->where('guid',$info['uu_guid'])->field('name,avatar')->find();
-                $info['uu_name'] = $tq_info['name'];
-                $info['uu_avatar'] =  $tq_info['avatar'];
-            }
+
+//            if (isset($info['uu_guid']) && $info['uu_guid']) {
+//                $tq_info = Db::name('tq_user')->where('guid',$info['uu_guid'])->field('name,avatar')->find();
+//                $info['uu_name'] = $tq_info['name'];
+//                $info['uu_avatar'] =  $tq_info['avatar'];
+//            }
             // 更新人
             if (isset($info['update_user']) && $info['update_user']) {
                 $info['update_user_name'] = $userAll[$info['update_user']]['realname'];
-            }
-            // 更新时间
-            if (isset($info['update_time']) && $info['update_time']) {
-//                $info['update_time'] = date('Y-m-d H:i:s', $info['update_time']);
             }
 
             // 格式化信息
