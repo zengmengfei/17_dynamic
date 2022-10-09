@@ -1,0 +1,6 @@
+/.idea
+/.vscode
+*.log
+runtime
+/avui/dist
+/avui/node_modules
