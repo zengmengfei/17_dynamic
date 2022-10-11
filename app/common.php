@@ -461,6 +461,15 @@ if (!function_exists('format_bytes')) {
 
 }
 
+if (!function_exists('get_time_rand_code')) {
+    /*
+     *  根据当前时间戳加上随机数获取唯一code
+     */
+    function get_time_rand_code($prefix = '') {
+        return $prefix.time().rand(1000, 9999);
+    }
+}
+
 if (!function_exists('get_guid_v4')) {
 
     /**

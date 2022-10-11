@@ -13,7 +13,7 @@ class ApiBaseModel extends Model
 {
     // 自动写入时间戳字段,true开启false关闭
 
-    protected $autoWriteTimestamp = 'int';
+    protected $autoWriteTimestamp = true;
     // 创建时间字段自定义,默认create_time
     protected $createTime = 'create_time';
     // 更新时间字段自定义,默认update_time

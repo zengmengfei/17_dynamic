@@ -20,7 +20,7 @@ class UserDynamic extends ApiBase
 
     public $params;
     public $wxUser;
-    public $userinfo;
+    public $userInfo;
 
     public function initialize()
     {
@@ -40,7 +40,6 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function dynamic_list(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         $dynamicModel = new Dynamic();
         $list = $dynamicModel->dynamicList($this->params);
         return ok_msg('查询成功', $list);
@@ -56,7 +55,6 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function my_dynamic_list(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         $dynamicModel = new Dynamic();
         $list = $dynamicModel->myDynamicList($this->params);
         return ok_msg('查询成功', $list);
@@ -71,7 +69,6 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function dynamic_detail(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         $dynamicModel = new Dynamic();
         $detail = $dynamicModel->dynamicDetail($this->params);
         return ok_msg('查询成功',  $detail);
@@ -89,7 +86,6 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function add_dynamic(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         //数据验证
         $validate = new Validate;
         $validate->rule([
@@ -119,7 +115,6 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function add_dynamic_comment(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         //数据验证
         $validate = new Validate;
         $validate->rule([
@@ -161,10 +156,9 @@ class UserDynamic extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function change_thumbs(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         if (empty($this->params['dynamic_sn'])) return err_msg('动态唯一标识未传递');
         $thumbModel = new DynamicThumb();
-        $res = $thumbModel->changeThumbs($this->userinfo['guid'], $this->params['dynamic_sn']);
+        $res = $thumbModel->changeThumbs($this->userInfo['guid'], $this->params['dynamic_sn']);
         return $res?ok_msg('操作成功', $this->params):err_msg('操作失败');
     }
 
@@ -181,26 +175,6 @@ class UserDynamic extends ApiBase
         $dynamicModel = new Dynamic();
         $res = $dynamicModel->dynamicShare($this->params);
         return $res?ok_msg('操作成功', $this->params):err_msg('操作失败');
-    }
-
-    public function userCheck() {
-        //数据验证
-        $validate = new Validate;
-        $validate->rule([
-            'guid' => 'require',
-        ]);
-        $validate->message([
-            'guid.require' => '用户唯一值不能为空',
-        ]);
-        if (!$validate->check($this->params)) {
-            return $validate->getError();
-        }
-        $userinfo = $this->wxUser->getUserInfoByUid($this->params['guid']);
-        if (empty($userinfo)) {
-            return '用户信息不存在';
-        }
-        $this->userinfo = $userinfo;
-        return true;
     }
 
 }

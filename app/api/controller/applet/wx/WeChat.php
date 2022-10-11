@@ -74,17 +74,11 @@ class WeChat extends ApiBase {
         $this->api_validate($params,$rule,$message);
         $user = $this->app->auth->session($params['code']);//获取openID
         if (empty($user['openid'])) return err_msg('登录失败');
-        $params = array_merge($user, $params);
-//        $params = [
-//            'session_key' => '57NX6c3j4fATICEd1iH+gg==',
-//            'openid' => 'oQp-e4tHmtdiyT6_ZRa1-BrSoY1o',
-//            'code' => '013CR10w3XA9jZ2tQx1w3ES8y23CR10Y',
-//            'avatarUrl' => 'https://thirdwx.qlogo.cn/mmopen/vi_32/SicNokfhxHqSdQgAFeM1r1Lae1RmiaYbkLiclXYeAV719e8O5FibPld5InZL24fj5xzK15RI2tfYLmzg3OWvj3QloQ/132',
-//            'nickName' => '一半' ];
-        if (!$this->wxUser->loginSaveUser($params)) return err_msg('授权登录失败');
-        $userinfo = $this->wxUser->getUserInfoByUid($user['openid']);
+        $userinfo = $this->wxUser->loginSaveUser($user['openid']);
+        if (!empty($userinfo)) {
+            return err_msg('授权登录失败');
+        }
         return ok_msg('ok', $userinfo);
-
     }
 
 }

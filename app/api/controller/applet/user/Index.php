@@ -12,12 +12,9 @@ use hg\apidoc\annotation as Apidoc;
  */
 class Index extends ApiBase
 {
-    //不需要登录接口
-    protected $noNeedLogin = ['*'];
 
     public $params;
     public $wxUser;
-    public $userinfo;
 
     public function initialize()
     {
@@ -50,7 +47,6 @@ class Index extends ApiBase
      * @Apidoc\Param("privacy_status", type="int",require=true,desc="隐私状态 10：公开 20：仅自己可见 30：仅玩过的人可见" )
      */
     public  function  update_user(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
         //数据验证
         $validate = new Validate;
         $validate->rule([
@@ -78,28 +74,8 @@ class Index extends ApiBase
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function get_user_info(){
-        if ($this->userCheck() !== true) return err_msg('用户未登录');
-        return  ok_msg('ok', $this->userinfo);
+        return  ok_msg('ok', $this->userInfo);
     }
 
-    public function userCheck() {
-        //数据验证
-        $validate = new Validate;
-        $validate->rule([
-            'guid' => 'require',
-        ]);
-        $validate->message([
-            'guid.require' => '用户唯一值不能为空',
-        ]);
-        if (!$validate->check($this->params)) {
-            return $validate->getError();
-        }
-        $userinfo = $this->wxUser->getUserInfoByUid($this->params['guid']);
-        if (empty($userinfo)) {
-            return '用户信息不存在';
-        }
-        $this->userinfo = $userinfo;
-        return true;
-    }
 
 }

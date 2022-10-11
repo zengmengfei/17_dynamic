@@ -21,4 +21,14 @@ class WxUserinfo extends ApiBaseModel
     {
         return ($value && is_array($value))?implode(',',$value):$value;
     }
+
+    public function getImgsAttr($value)
+    {
+        return $value?explode(',', $value):'';
+    }
+
+    public function setImgsAttr($value)
+    {
+        return ($value && is_array($value))?implode(',',$value):$value;
+    }
 }
