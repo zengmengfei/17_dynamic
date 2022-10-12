@@ -56,7 +56,8 @@ class Venue extends ApiBaseModel
 
     // 场馆详情
     public function getVenueInfo($venue_sn) {
-        return self::where(['venue_sn' => $venue_sn])->find()->toArray();
+        $info = self::where(['venue_sn' => $venue_sn])->find();
+        return !empty($info)?$info->toArray():[];
     }
 
     //获取场馆某一个时间段的详情

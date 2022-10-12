@@ -73,11 +73,9 @@ class WeChat extends ApiBase {
         ]);
         $this->api_validate($params,$rule,$message);
         $user = $this->app->auth->session($params['code']);//获取openID
-        if (empty($user['openid'])) return err_msg('登录失败');
-        $userinfo = $this->wxUser->loginSaveUser($user['openid']);
-        if (!empty($userinfo)) {
-            return err_msg('授权登录失败');
-        }
+        if (empty($user['openid'])) base_msg('微信授权失败');
+        $userinfo = $this->wxUser->loginSaveUser($user);
+        if (empty($userinfo)) base_msg('用户注册失败');
         return ok_msg('ok', $userinfo);
     }
 

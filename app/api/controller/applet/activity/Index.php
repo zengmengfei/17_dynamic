@@ -93,11 +93,20 @@ class Index extends ApiBase
      * @Apidoc\Title("活动列表")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
+     * @Apidoc\Param("activity_type", type="string",require=false,desc="活动类型" )
+     * @Apidoc\Param("activity_date", type="string",require=false,desc="活动日期" )
+     * @Apidoc\Param("citys", type="array",require=false,desc="所在城市" )
+     * @Apidoc\Param("districts", type="array",require=false,desc="所在地区" )
+     * @Apidoc\Param("tags", type="array",require=false,desc="标签" )
+     * @Apidoc\Param("is_distance", type="int",require=false,desc="距离离我最近" )
+     * @Apidoc\Param("is_last_time", type="int",require=false,desc="时间离我最近" )
+     * @Apidoc\Param("longitude", type="string",require=false,desc="当前用户经度" )
+     * @Apidoc\Param("latitude", type="string",require=false,desc="当前用户纬度" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function get_activity_list() {
         $activityModel = new Activity();
-        $list = $activityModel->getActivityList();
+        $list = $activityModel->getActivityList($this->params);
         return ok_msg('查询成功', $list);
     }
 

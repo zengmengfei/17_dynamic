@@ -470,6 +470,17 @@ if (!function_exists('get_time_rand_code')) {
     }
 }
 
+if (!function_exists('get_week_name')) {
+    /*
+       *  根据某个时间戳获取当前是周几
+       */
+    function get_week_name($time) {
+        $weekarray=["周日","周一","周二","周三","周四","周五","周六"];
+        $w = date('w', $time);
+        return $weekarray[$w] ?? '';
+    }
+}
+
 if (!function_exists('get_guid_v4')) {
 
     /**
@@ -742,6 +753,42 @@ if (!function_exists('get_format_time')) {
     }
 
 }
+
+if (!function_exists('get_distance')) {
+    /**
+     * 计算两点之间的距离
+     * @param $lng1 经度1
+     * @param $lat1 纬度1
+     * @param $lng2 经度2
+     * @param $lat2 纬度2
+     * @param int $unit m，km
+     * @param int $decimal 位数
+     * @return float
+     */
+    function get_distance($lng1, $lat1, $lng2, $lat2, $unit = 2, $decimal = 2)
+    {
+        $EARTH_RADIUS = 6371.393; // 地球半径系数
+        $PI           = 3.1415926535898;
+
+        $radLat1 = $lat1 * $PI / 180.0;
+        $radLat2 = $lat2 * $PI / 180.0;
+
+        $radLng1 = $lng1 * $PI / 180.0;
+        $radLng2 = $lng2 * $PI / 180.0;
+
+        $a = $radLat1 - $radLat2;
+        $b = $radLng1 - $radLng2;
+
+        $distance = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2)));
+        $distance = $distance * $EARTH_RADIUS * 1000;
+
+        if ($unit === 2) {
+            $distance /= 1000;
+        }
+        return round($distance, $decimal);
+    }
+}
+
 
 if (!function_exists('get_device_type')) {
 

@@ -4,6 +4,8 @@ declare (strict_types = 1);
 namespace app\api\model\activity;
 
 use app\api\model\ApiBaseModel;
+use app\api\model\channel\Channel;
+use app\api\model\user\WxUser;
 use app\api\model\venue\Venue;
 use think\facade\Db;
 
@@ -18,6 +20,9 @@ class Activity extends ApiBaseModel
       10 => '活动前2小时',
 //      20 => '活动前6小时',
 //      30 => '活动前1天',
+    ];
+    const ACTIVITY_TYPE_ARR = [
+      10 => '运动健身', 20 => '户外出行', 30 => '单身交友', 40 => '生活学习'
     ];
 
 
@@ -86,27 +91,95 @@ class Activity extends ApiBaseModel
         $venueTimeDetail = $venueModel->getVenueTimeDetail($venue_sn);
         $saveData['venue_cost'] = $venueTimeDetail['venue_cost'];
         $saveData['venue_actual_cost'] = $venueTimeDetail['venue_actual_cost'];
-        return self::save($saveData);
+
+        Db::startTrans();
+        try {
+            self::save($saveData);
+            // 添加消息频道
+            $channel_name = date('m.d', strtotime($param['activity_date'])).get_week_name(strtotime($param['activity_date'])).(self::ACTIVITY_TYPE_ARR[$param['activity_type']] ?? '').'局';
+            $channel_data = ['guid' => $param['guid'], 'related_sn' => $activity_sn, 'channel_type' => 20, 'channel_name' => $channel_name, 'greetings' => '这里是'.$channel_name.'群，待新的小伙伴加入群聊'];
+            $channel = new Channel();
+            if (!$channel->createChannel($channel_data)) {
+                Db::rollback();
+                return false;
+            };
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            return false;
+        }
     }
 
     // 活动列表
-    public function getActivityList() {
-        $order = ['create_time' => 'desc'];
-        $list = self::with(['applys' => function ($query) {
+    public function getActivityList($param) {
+        $map = $order = [];
+        if (!empty($param['activity_type'])) {
+            $map[] = ['activity_type', '=', $param['activity_type']];
+        }
+        if (!empty($param['activity_date'])) {
+            $map[] = ['activity_date', '=', $param['activity_date']];
+        }
+        if (!empty($param['tags']) && is_array($param['tags'])) {
+            $tags = [];
+            foreach ($param['tags'] as $tag) {
+                $tags[] = '%'.$tag.'%';
+            }
+            $map[] = ['tags', 'like', $tags, 'or'];
+        }
+        if (!empty($param['citys']) && is_array($param['citys'])) {
+            $map[] = ['city', 'in', $param['citys']];
+        }
+        if (!empty($param['districts']) && is_array($param['districts'])) {
+            $map[] = ['district', 'in', $param['districts']];
+        }
+        $query = self::with(['user', 'applys' => function ($query) {
             $query->with(['user', 'userInfo']);
-        }])->order($order)->select()->toArray();
-        if (empty($list)) {
+        }]);
+
+        if (!empty($map)) {
+            $query = $query->where($map);
+        }
+        if (!empty($param['is_distance']) && $param['is_distance'] == 1 && !empty($param['longitude']) && !empty($param['latitude'])) {
+            // 距离我最近排序
+            $query = $query->fieldRaw("*,".$this->get_distance_sql($param['longitude'], $param['latitude'], 'distance_field'));
+            $order['distance_field'] = 'asc';
+        }
+        if (!empty($param['is_last_time']) && $param['is_last_time'] == 1) {
+            // 时间离我最近排序
+            $order['activity_starttime'] = 'asc';
+        }
+        $order['create_time'] = 'desc';
+        $list = $query->order($order)->select();
+        if (!empty($list)) {
+            $list = $list->toArray();
             foreach ($list as &$v) {
                 $v = $this->checkActivityDetail($v);
+                if (!empty($param['longitude']) && !empty($param['latitude']) && !empty($v['longitude']) && !empty($v['latitude'])) {
+                    $v['distance'] = get_distance($param['longitude'], $param['latitude'], $v['longitude'], $v['latitude']);
+                } else {
+                    $v['distance'] = '';
+                }
             }
         }
         return $list;
     }
 
+    // 经纬度排序sql组装
+    public function get_distance_sql($lat, $lng, $as_name = 'distance_field')
+    {
+//        return "(6371*acos(cos(radians($lat))*cos(radians(`latitude`)) * cos(radians(`longitude`)-radians($lng)) + sin(radians($lat))*sin(radians(`latitude`)))) AS $as_name";
+        return sprintf('round(6371*sqrt( pow((PI()*(abs(`longitude`-%f))/180) * cos(PI()*(`longitude`+%f)/360),2) + pow((PI()*abs(`longitude`-%f)/180),2)),4) as %s', $lat, $lat, $lng, $as_name);
+    }
+
+
     public function getActivityDetail($activity_sn) {
-        $detail = self::with(['applys' => function ($query) {
+        $detail = self::with(['user', 'applys' => function ($query) {
             $query->with(['user', 'userInfo']);
-        }])->where(['activity_sn' => $activity_sn])->find()->toArray();
+        }])->where(['activity_sn' => $activity_sn])->find();
+        if (empty($detail)) return [];
+        $detail = $detail->toArray();
         return $this->checkActivityDetail($detail);
     }
 
@@ -124,7 +197,14 @@ class Activity extends ApiBaseModel
                 } else {
                     ++$female_num;
                 }
-                $temp = ['nickname' => $sv['nickname'], 'gender' => $sv['gender'], 'avatar' => $sv['user']['avatar'], 'constellation' => $sv['userInfo']['constellation']];
+                $temp = [
+                    'guid' => $sv['guid'],
+                    'player_level' => $sv['player_level'],
+                    'nickname' => $sv['nickname'],
+                    'gender' => $sv['gender'],
+                    'avatar' => $sv['user']['avatar'],
+                    'constellation' => $sv['userInfo']['constellation']
+                ];
                 if ($sv['team_no'] == 1){
                     $team_one_list[] = $temp;
                 } elseif ($sv['team_no'] == 2) {
@@ -134,6 +214,10 @@ class Activity extends ApiBaseModel
                 }
             }
         }
+        $user = $detail['user'];
+        unset($detail['user']);
+        $detail['nickname'] = $user['nickname'] ?? '';
+        $detail['avatar'] = $user['avatar'] ?? '';
         $detail['male_num'] = $male_num;
         $detail['female_num'] = $female_num;
         $detail['team_list'] = $team_list;
@@ -144,7 +228,8 @@ class Activity extends ApiBaseModel
 
     // 获取活动信息
     public function getActivityInfo($activity_sn) {
-        return self::where(['activity_sn' => $activity_sn, 'mark' => 1])->find()->toArray();
+        $info = self::where(['activity_sn' => $activity_sn, 'mark' => 1])->find();
+        return !empty($info)?$info->toArray():[];
     }
 
     public function getCoverImgsAttr($value)
@@ -159,6 +244,11 @@ class Activity extends ApiBaseModel
 
     public function applys() {
         return $this->hasMany(Apply::class, 'activity_sn', 'activity_sn')->where(['status' => 20, 'mark' => 1]);
+    }
+
+    public function user()
+    {
+        return $this->hasOne(WxUser::class, 'guid', 'guid')->field(['guid', 'avatar', 'nickname']);
     }
 
 }

@@ -71,7 +71,7 @@ class UserDynamic extends ApiBase
     public function dynamic_detail(){
         $dynamicModel = new Dynamic();
         $detail = $dynamicModel->dynamicDetail($this->params);
-        return ok_msg('查询成功',  $detail);
+        return $detail?ok_msg('查询成功',  $detail):err_msg('数据不存在');
     }
 
     /**

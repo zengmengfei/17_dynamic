@@ -26,7 +26,7 @@ class Dynamic extends ApiBaseModel
         $list = self::with(['user'])->where($map)->order(['create_time' => 'desc'])->paginate(['page' => $page,'list_rows'=> $count])->toArray();
         if (!empty($list['data'])) {
             foreach ($list['data'] as $key => $value) {
-                $list['data'][$key]['time_txt'] = get_format_time(strtotime($value['create_time']));
+                $list['data'][$key]['time_str'] = get_format_time(strtotime($value['create_time']));
             }
         }
         return message("操作成功", true, $list);
@@ -56,9 +56,10 @@ class Dynamic extends ApiBaseModel
 
     //动态详情
     public function dynamicDetail($dynamic_sn) {
-        $detail = self::with(['user'])->where(['dynamic_sn' => $dynamic_sn])->find()->toArray();
+        $detail = self::with(['user'])->where(['dynamic_sn' => $dynamic_sn])->find();
         if (!empty($detail)) {
-            $detail['time_txt'] = get_format_time(strtotime($detail['create_time']));
+            $detail = $detail->toArray();
+            $detail['time_str'] = get_format_time(strtotime($detail['create_time']));
         }
         return $detail;
     }

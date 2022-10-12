@@ -58,7 +58,7 @@ class ActivityApply extends ApiBase
             return $validate->getError();
         }
         $applyModel = new Apply();
-        $res = $applyModel->apply($this->params);
+        $res = $applyModel->apply($this->params, $this->userInfo);
         return ok_msg('报名成功', $res);
     }
 

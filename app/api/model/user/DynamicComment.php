@@ -13,7 +13,7 @@ class DynamicComment extends ApiBaseModel
 {
     protected $name = "user_dynamic_comment";
 
-    // 点赞或者取消点赞事件操作
+    // 添加动态评论
     public function addDynamicComment($params) {
         $dynamicModel = new Dynamic();
         $dynamic_sn = $params['dynamic_sn'];

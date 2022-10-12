@@ -26,13 +26,12 @@ class WxUser extends ApiBaseModel
              $saveData = [
                  'guid' => $guid,
                  'openid' => $openid,
+                 'nickname' => '游客'.rand(100000, 999999),
                  'unionid' => $param['unionid'] ?? '',
              ];
              self::save($saveData);
-             $infoData = ['guid' => $guid];
-             if (!empty($params['mobile'])) $infoData['mobile'] = $params['mobile'];
              $userInfoModel = new WxUserinfo();
-             $userInfoModel::save($infoData);
+             $userInfoModel->save(['guid' => $guid]);
              // 提交事务
              Db::commit();
              $userInfo = $this->getUserInfoByUid($openid);
@@ -47,7 +46,6 @@ class WxUser extends ApiBaseModel
     // 更新用户信息
     public function updateUser($params) {
         $guid = $params['guid'];
-        $userInfoModel = new WxUserinfo();
         Db::startTrans();
         try {
             $userData = [
@@ -56,8 +54,13 @@ class WxUser extends ApiBaseModel
                 'gender' => $params['gender'] ?? 0,
                 'is_perfect' => 1,
             ];
+            if (isset($params['longitude'])) $userData['longitude'] = $params['longitude'];
+            if (isset($params['latitude'])) $userData['latitude'] = $params['latitude'];
+            if (isset($params['province'])) $userData['province'] = $params['province'];
+            if (isset($params['city'])) $userData['city'] = $params['city'];
+            if (isset($params['district'])) $userData['district'] = $params['district'];
             // 更新用户
-            self::where('guid', $guid)->update($userData);
+            self::update($userData, ['guid' => $guid]);
             $infoData = [
                 'mobile' => $params['mobile'] ?? '',
                 'name' => $params['name'] ?? '',
@@ -65,13 +68,16 @@ class WxUser extends ApiBaseModel
                 'location' => $params['location'] ?? '',
                 'profession' => $params['profession'] ?? '',
                 'constellation' => $params['constellation'] ?? '',
-                'tags' => $params['tags'] ?? '',
-                'sign' => $params['sign'] ?? '',
+                'tags' => $params['tags'] ?? [],
+                'about_me' => $params['about_me'] ?? '',
                 'privacy_status' => $params['privacy_status'] ?? 10,
                 'imgs' => $params['imgs'] ?? [],
             ];
+            if (isset($params['mobile'])) $infoData['mobile'] = $params['mobile'];
+            if (isset($params['name'])) $infoData['name'] = $params['name'];
+            $userInfoModel = new WxUserinfo();
             // 更新用户详情
-            $userInfoModel::where('guid', $guid)->update($infoData);
+            $userInfoModel::update($infoData, ['guid' => $guid]);
             Db::commit();
             return true;
         } catch (\Exception $e) {
@@ -85,8 +91,9 @@ class WxUser extends ApiBaseModel
     // 根据guid|openid查询用户信息
     public function getUserInfoByUid($uid)
     {
-        $user = self::where('guid|openid', $uid)->with('info')->find()->toArray();
-        if (empty($user) || empty($user['info'])) return [];
+        $user = self::where('guid|openid', $uid)->with('info')->find();
+        if (empty($user) || empty($user->info)) return [];
+        $user = $user->toArray();
         $userInfo = $user['info'];
         unset($user['info']);
         foreach ($userInfo as $field => $v) {
@@ -101,5 +108,11 @@ class WxUser extends ApiBaseModel
     public function info()
     {
         return $this->hasOne(WxUserinfo::class, 'guid', 'guid');
+    }
+
+    // 获取用户头像昵称信息
+    public function simpleInfo($guid) {
+        $user = self::where('guid', $guid)->field(['guid', 'nickname', 'avatar'])->find();
+        return $user?$user->toArray():[];
     }
 }

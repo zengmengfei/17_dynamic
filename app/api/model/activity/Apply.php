@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\api\model\activity;
 
 use app\api\model\ApiBaseModel;
+use app\api\model\channel\Channel;
 use app\api\model\user\WxUser;
 use app\api\model\user\WxUserinfo;
 use think\facade\Db;
@@ -16,13 +17,15 @@ class Apply extends ApiBaseModel
     protected $name = "activity_apply";
 
     //活动报名
-    public function apply($param) {
+    public function apply($param, $userInfo) {
         $activityModel = new Activity();
         $activity_sn = $param['activity_sn'];
         $activityInfo = $activityModel->getActivityInfo($activity_sn);
         if (empty($activityInfo)) {
             base_msg('活动信息不存在');
         }
+        $checkApply = self::where(['guid' => $param['guid'], 'activity_sn' => $activity_sn, 'status' => 20])->find();
+        if (!empty($checkApply)) base_msg('当前用户已报名该活动,请不要重复报名');
         if (time() > strtotime($activityInfo['activity_starttime'])) {
             base_msg('活动已开始,无法报名');
         }
@@ -68,6 +71,13 @@ class Apply extends ApiBaseModel
             if ($team_no == 1) $acData['team_one_current_num'] = $activityInfo['team_one_current_num'] + 1;
             if ($team_no == 2) $acData['team_two_current_num'] = $activityInfo['team_two_current_num'] + 1;
             $activityModel::where(['activity_sn' => $activity_sn])->save($acData);
+            // 用户加入群聊
+            $join_data = ['guid' => $param['guid'], 'related_sn' => $activity_sn, 'greetings' => '大家好，我是'.($userInfo['nickname'] ?? '新来的小伙伴').'，很高兴认识大家'];
+            $channel = new Channel();
+            if (!$channel->joinChannel($join_data)) {
+                Db::rollback();
+                return false;
+            };
             // 提交事务
             Db::commit();
             return true;
@@ -77,6 +87,7 @@ class Apply extends ApiBaseModel
             return false;
         }
     }
+
 
     public function user()
     {
