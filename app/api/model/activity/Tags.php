@@ -23,11 +23,11 @@ class Tags extends ApiBaseModel
     // 添加标签
     public function addTag($param) {
         if ($this->checkTagName($param)) {
-            base_msg('不可重复添加相同标签名', 400);
+            base_msg('不可重复添加相同标签名');
         }
         $count = $this->getTagCount($param);
         if ($count && $count > self::maxNum) {
-            base_msg('自定义标签添加最大数为'.self::maxNum.'个', 400);
+            base_msg('自定义标签添加最大数为'.self::maxNum.'个');
         }
         return self::save(['guid' => $param['guid'],'tag_name' => trim($param['tag_name'])]);
     }

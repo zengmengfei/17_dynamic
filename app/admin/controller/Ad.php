@@ -9,7 +9,7 @@ use app\admin\service\AdService;
 /**
 * 广告管理-控制器
 * @author PENGKING
-* @since: 2022/10/08
+* @since: 2022/10/12
 * Class Ad
 * @package app\admin\controller
 */
@@ -18,7 +18,7 @@ class Ad extends Backend
 /**
 * 初始化方法
 * @author PENGKING
-* @since: 2022/10/08
+* @since: 2022/10/12
 */
 public function initialize()
 {
@@ -30,7 +30,7 @@ $this->service = new AdService();
 /**
 * 获取数据列表
 * @return array
-* @since 2022/10/08
+* @since 2022/10/12
 * @author PENGKING
 
 */

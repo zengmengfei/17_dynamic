@@ -14,20 +14,20 @@ class DynamicComment extends ApiBaseModel
     protected $name = "user_dynamic_comment";
 
     // 添加动态评论
-    public function addDynamicComment($params) {
+    public function addDynamicComment($param) {
         $dynamicModel = new Dynamic();
-        $dynamic_sn = $params['dynamic_sn'];
-        $parent_id = $params['parent_id'] ?? 0;
+        $dynamic_sn = $param['dynamic_sn'];
+        $parent_id = $param['parent_id'] ?? 0;
         if (!empty($parent_id) && empty($this->getCommentById($parent_id))) return true;
         $dynamicInfo = $dynamicModel->getDynamicInfoBySn($dynamic_sn);
         if (empty($dynamicInfo)) return false;
         Db::startTrans();
         try {
             $thumbSave = [
-                'guid' => $params['guid'],
+                'guid' => $param['guid'],
                 'uu_guid' => $dynamicInfo['guid'],
-                'dynamic_sn' => $params['dynamic_sn'],
-                'content' => $params['content'],
+                'dynamic_sn' => $param['dynamic_sn'],
+                'content' => $param['content'],
                 'parent_id' => $parent_id,
             ];
             self::save($thumbSave);
@@ -43,8 +43,8 @@ class DynamicComment extends ApiBaseModel
     }
 
     // 获取评论详情
-    public function getDynamicComment($params) {
-        $dynamic_sn = $params['dynamic_sn'];
+    public function getDynamicComment($param) {
+        $dynamic_sn = $param['dynamic_sn'];
         $list = self::with(['user','comments' => function($query) {
             $query->with('user');
         }])->where(['dynamic_sn' => $dynamic_sn, 'mark' => 1, 'parent_id' => 0])->order('create_time', 'desc')->select();

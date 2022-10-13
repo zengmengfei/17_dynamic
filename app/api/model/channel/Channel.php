@@ -21,10 +21,10 @@ class Channel extends ApiBaseModel
     // 创建频道
     public function createChannel($params) {
         $guid = $params['guid'];
-        if (empty($guid)) base_msg('用户guid不存在', 400);
+        if (empty($guid)) base_msg('用户guid不存在');
         $channel_type = $params['channel_type'];
         if (!isset(self::CHANNEL_TYPE_ARR[$channel_type])) {
-            base_msg('消息频道类型不存在', 400);
+            base_msg('消息频道类型不存在');
         }
         $channel_sn = get_time_rand_code(self::CHANNEL_TYPE_ARR[$channel_type]['prefix']);
         $channelData = [
@@ -57,9 +57,9 @@ class Channel extends ApiBaseModel
     public function joinChannel($params) {
         $guid = $params['guid'];
         $related_sn = $params['related_sn'];
-        if (empty($guid) || empty($related_sn)) base_msg('数据不完整，无法加入群聊', 400);
+        if (empty($guid) || empty($related_sn)) base_msg('数据不完整，无法加入群聊');
         $channelInfo = self::where(['related_sn' => $related_sn, 'mark' => 1])->find();
-        if (empty($channelInfo)) base_msg('群聊不存在，加入失败', 400);
+        if (empty($channelInfo)) base_msg('群聊不存在，加入失败');
         $channel_sn = $channelInfo->channel_sn;
         $channelUser = new ChannelUser();
         $channelUserInfo = $channelUser->where(['guid' => $guid, 'channel_sn' => $channel_sn])->find();

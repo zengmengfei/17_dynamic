@@ -3,6 +3,7 @@
 namespace app\api\controller\applet\activity;
 
 use app\api\model\activity\Activity;
+use app\api\model\activity\SignIn;
 use app\common\controller\ApiBase;
 use think\Validate;
 use hg\apidoc\annotation as Apidoc;
@@ -113,15 +114,29 @@ class Index extends ApiBase
     /**
      * @Apidoc\Title("活动详情")
      * @Apidoc\Author("pengking")
-     * @Apidoc\Param("activity_sn", type="string",require=true,desc="活动唯一标识" )
      * @Apidoc\Method("GET")
+     * @Apidoc\Param("activity_sn", type="string",require=true,desc="活动唯一标识" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function get_activity_detail() {
         if (empty($this->params['activity_sn'])) base_msg('活动唯一标识不能为空');
         $activityModel = new Activity();
-        $detail = $activityModel->getActivityDetail($this->params['activity_sn']);
+        $detail = $activityModel->getActivityDetail($this->params);
         return ok_msg('查询成功', $detail);
+    }
+
+    /**
+     * @Apidoc\Title("活动签到")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Param("activity_sn", type="string",require=true,desc="活动唯一标识" )
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户guid" )
+     * @Apidoc\Returned("data", type="json", desc="用户数据")
+     */
+    public function signIn() {
+        $signInModel = new SignIn();
+        $res = $signInModel->createSignIn($this->params);
+        return $res?ok_msg('签到成功'):err_msg('签到失败');
     }
 
 }

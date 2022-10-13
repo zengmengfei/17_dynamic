@@ -4,7 +4,7 @@ use think\facade\Db;
 /**
 * 广告-模型
 * @author PENGKING
-* @since: 2022/10/08
+* @since: 2022/10/12
 * Class Ad
 * @package app\admin\model
 */
@@ -20,7 +20,7 @@ protected $name = "ad";
 * @throws \think\db\exception\DataNotFoundException
 * @throws \think\db\exception\ModelNotFoundException
 * @author PENGKING
-* @since: 2022/10/08
+* @since: 2022/10/12
 */
 public function getInfo($id)
 {

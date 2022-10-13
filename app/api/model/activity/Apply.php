@@ -88,6 +88,17 @@ class Apply extends ApiBaseModel
         }
     }
 
+    // 查看用户是否报名该活动
+    public function checkUserApply($guid, $activity_sn) {
+        $count = self::where(['activity_sn' => $activity_sn, 'guid' => $guid, 'status' => 20, 'mark' => 1])->count();
+        return ($count && $count > 0)?true:false;
+    }
+
+    // 查看用户是否报名该活动
+    public function applyInfo($guid, $activity_sn) {
+        $info = self::where(['activity_sn' => $activity_sn, 'guid' => $guid, 'status' => 20, 'mark' => 1])->find();
+        return $info?$info->toArray():[];
+    }
 
     public function user()
     {

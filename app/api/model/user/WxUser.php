@@ -27,7 +27,7 @@ class WxUser extends ApiBaseModel
                  'guid' => $guid,
                  'openid' => $openid,
                  'nickname' => '游客'.rand(100000, 999999),
-                 'unionid' => $param['unionid'] ?? '',
+                 'unionid' => $params['unionid'] ?? '',
              ];
              self::save($saveData);
              $userInfoModel = new WxUserinfo();

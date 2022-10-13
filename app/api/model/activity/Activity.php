@@ -16,6 +16,15 @@ class Activity extends ApiBaseModel
 {
     protected $name = "activity";
 
+    protected $append = ['ac_status'];
+
+    const AC_STATUS_ARR = [
+      10 => '未开始',
+      20 => '活动中',
+      30 => '已完成',
+      40 => '已取消',
+    ];
+
     const CADTARR = [
       10 => '活动前2小时',
 //      20 => '活动前6小时',
@@ -153,6 +162,7 @@ class Activity extends ApiBaseModel
         $order['create_time'] = 'desc';
         $list = $query->order($order)->select();
         if (!empty($list)) {
+            $applyModel = new Apply();
             $list = $list->toArray();
             foreach ($list as &$v) {
                 $v = $this->checkActivityDetail($v);
@@ -160,6 +170,11 @@ class Activity extends ApiBaseModel
                     $v['distance'] = get_distance($param['longitude'], $param['latitude'], $v['longitude'], $v['latitude']);
                 } else {
                     $v['distance'] = '';
+                }
+                $v['is_owner'] = $v['is_apply'] = 0; // 是否发起人|是否已参加
+                if (!empty($param['guid'])) {
+                    if ($v['guid'] == $param['guid']) $v['is_owner'] = 1;
+                    if ($applyModel->checkUserApply($param['guid'], $v['activity_sn'])) $v['is_apply'] = 1;
                 }
             }
         }
@@ -174,13 +189,25 @@ class Activity extends ApiBaseModel
     }
 
 
-    public function getActivityDetail($activity_sn) {
+    public function getActivityDetail($params) {
+        $activity_sn = $params['activity_sn'];
         $detail = self::with(['user', 'applys' => function ($query) {
             $query->with(['user', 'userInfo']);
         }])->where(['activity_sn' => $activity_sn])->find();
         if (empty($detail)) return [];
-        $detail = $detail->toArray();
-        return $this->checkActivityDetail($detail);
+        $detail = $this->checkActivityDetail($detail->toArray());
+        if (!empty($params['longitude']) && !empty($params['latitude']) && !empty($detail['longitude']) && !empty($detail['latitude'])) {
+            $detail['distance'] = get_distance($params['longitude'], $params['latitude'], $detail['longitude'], $detail['latitude']);
+        } else {
+            $detail['distance'] = '';
+        }
+        $detail['is_owner'] = $detail['is_apply'] = 0; // 是否发起人|是否已参加
+        if (!empty($params['guid'])) {
+            $applyModel = new Apply();
+            if ($detail['guid'] == $params['guid']) $detail['is_owner'] = 1;
+            if ($applyModel->checkUserApply($params['guid'], $detail['activity_sn'])) $detail['is_apply'] = 1;
+        }
+        return $detail;
     }
 
     // 活动详情数据组装
@@ -226,6 +253,8 @@ class Activity extends ApiBaseModel
         return $detail;
     }
 
+
+
     // 获取活动信息
     public function getActivityInfo($activity_sn) {
         $info = self::where(['activity_sn' => $activity_sn, 'mark' => 1])->find();
@@ -251,4 +280,22 @@ class Activity extends ApiBaseModel
         return $this->hasOne(WxUser::class, 'guid', 'guid')->field(['guid', 'avatar', 'nickname']);
     }
 
+    // 添加活动状态
+    public function getAcStatusAttr() {
+        if ($this->status == 30) {
+            // 活动取消
+            $ac_status = 40;
+        } elseif (time() < strtotime($this->activity_starttime)) {
+            // 活动未开始
+            $ac_status = 10;
+        } elseif (time() >= strtotime($this->activity_endtime)) {
+            // 活动未开始
+            $ac_status = 30;
+        } else {
+            // 活动进行中
+            $ac_status = 20;
+        }
+        return $ac_status;
+//        $this->setAttrs(['ac_status' => $ac_status, 'ac_status_str' => self::AC_STATUS_ARR[$ac_status]]);
+    }
 }

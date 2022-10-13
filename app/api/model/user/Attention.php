@@ -15,10 +15,11 @@ class Attention extends ApiBaseModel
 
     // 关注或取关事件
     public function changeAttention($params) {
+        if ($params['guid'] == $params['to_guid']) base_msg('您不可关注自己');
         $wxUserinfo = new WxUserinfo();
         $wxUser = new WxUser();
-        $toUserInfo = $wxUser->getUserInfoByUid($params['to_guid']);
-        if (empty($toUserInfo)) return false;
+        $toUserInfo = $wxUser->simpleInfo($params['to_guid']);
+        if (empty($toUserInfo)) base_msg('被关注人用户信息不存在');
         $attentionInfo = self::where(['from_guid' => $params['guid'], 'to_guid' => $params['to_guid']])->find();
         Db::startTrans();
         try {

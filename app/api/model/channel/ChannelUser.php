@@ -46,7 +46,7 @@ class ChannelUser extends ApiBaseModel
     public function getChannelMessages($params, $userInfo) {
         $channel_sn = $params['channel_sn'];
         $channelInfo = self::where(['guid' => $userInfo['guid'], 'channel_sn' => $channel_sn])->find();
-        if (empty($channelInfo)) base_msg('当前用户不在频道内，无法查看频道消息', 400);
+        if (empty($channelInfo)) base_msg('当前用户不在频道内，无法查看频道消息');
         $channelInfo = $channelInfo->toArray();
         if ($channelInfo['unread_num'] > 0){
             self::update(['unread_num' => 0], ['id' => $channelInfo['id']]);
@@ -75,7 +75,7 @@ class ChannelUser extends ApiBaseModel
         $type = $params['type'] ?? 10;
         $channel_sn = $params['channel_sn'];
         $channelInfo = self::where(['guid' => $userInfo['guid'], 'channel_sn' => $channel_sn])->find();
-        if (empty($channelInfo)) base_msg('当前用户不在频道内，无法查看频道消息', 400);
+        if (empty($channelInfo)) base_msg('当前用户不在频道内，无法查看频道消息');
         $channelMessage = new ChannelMessage();
         try {
             $channelMessage->save(['channel_sn' => $channel_sn, 'guid' => $userInfo['guid'], 'type' => $type, 'content' => $params['content']]);
