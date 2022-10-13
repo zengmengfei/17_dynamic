@@ -29,6 +29,12 @@ class WxUserinfo extends ApiBaseModel
 
     public function setImgsAttr($value)
     {
-        return ($value && is_array($value))?implode(',',$value):$value;
+        if (!$value) return $value;
+        $value = explode(',', $value);
+        $data = [];
+        foreach ($value as $item) {
+            $data[] = get_image_url($item);
+        }
+        return $data;
     }
 }

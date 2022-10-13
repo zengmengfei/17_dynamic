@@ -41,7 +41,7 @@ class Apply extends ApiBaseModel
                 base_msg('当前队伍人数已满');
             }
         }
-        $apply_sn = get_time_rand_code('ap');
+        $apply_sn = get_time_rand_code('AP');
         $entry_fee = $actual_fee = $activityInfo['entry_fee'];
         // 积分抵扣情况
         $deduction_fee = 0;
@@ -100,6 +100,26 @@ class Apply extends ApiBaseModel
         return $info?$info->toArray():[];
     }
 
+    // 我参加的活动列表
+    public function myActivityList($params) {
+        $list = self::with(['activity'])->where(['guid' => $params['guid'], 'status' => 20, 'mark' => 1])->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        $newList = [];
+        foreach ($list as $v) {
+            if (empty($v['activity'])) continue;
+            $item = $v['activity'];
+            $item['apply_sn'] = $v['apply_sn'];
+            if (!empty($param['longitude']) && !empty($param['latitude']) && !empty($item['longitude']) && !empty($item['latitude'])) {
+                $item['distance'] = get_distance($param['longitude'], $param['latitude'], $item['longitude'], $item['latitude']);
+            } else {
+                $item['distance'] = '';
+            }
+            $newList[] = $item;
+        }
+        return $newList;
+    }
+
     public function user()
     {
         return $this->hasOne(WxUser::class, 'guid', 'guid')->field(['guid', 'avatar']);
@@ -108,5 +128,10 @@ class Apply extends ApiBaseModel
     public function userInfo()
     {
         return $this->hasOne(WxUserinfo::class, 'guid', 'guid')->field(['guid', 'constellation']);
+    }
+
+    public function activity()
+    {
+        return $this->hasOne(Activity::class, 'activity_sn', 'activity_sn');
     }
 }

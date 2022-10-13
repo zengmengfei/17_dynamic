@@ -2,12 +2,13 @@
 
 namespace app\api\controller\applet\user;
 
+use app\api\model\user\CardBrowse;
 use app\api\model\user\WxUser;
 use app\common\controller\ApiBase;
 use think\Validate;
 use hg\apidoc\annotation as Apidoc;
 /**
- * @Apidoc\Title("小程序用户接口")
+ * @Apidoc\Title("用户信息接口")
  * @Apidoc\Group ("user")
  */
 class Index extends ApiBase
@@ -62,8 +63,9 @@ class Index extends ApiBase
 
 
     /**
-     * @Apidoc\Title("根据用户guid获取用户详情")
+     * @Apidoc\Title("用户guid获取用户详情")
      * @Apidoc\Author("pengking")
+     * @Apidoc\Method("GET")
      * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
@@ -72,13 +74,44 @@ class Index extends ApiBase
     }
 
     /**
-     * @Apidoc\Title("根据用户guid获取用户详情")
+     * @Apidoc\Title("用户guid获取名片详情")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
+     * @Apidoc\Param("uu_guid", type="string",require=true,desc="被查看用户guid" )
+     * @Apidoc\Returned("data", type="json", desc="用户数据")
+     */
+    public function get_user_card(){
+        //数据验证
+        $validate = new Validate;
+        $validate->rule([
+            'guid' => 'require',
+            'uu_guid' => 'require',
+        ]);
+        $validate->message([
+            'guid.require' => '用户guid不能为空',
+            'uu_guid.require' => '被查看用户guid不能为空',
+        ]);
+        if (!$validate->check($this->params)) {
+            return $validate->getError();
+        }
+        $carInfo = $this->wxUser->getUserInfoByUid($this->params['uu_guid']);
+        if (empty($carInfo)) return  ok_msg('未查询到用户名片信息');
+        $cardBrowse = new CardBrowse();
+        $cardBrowse->userCardBrowse($this->params['guid'], $this->params['uu_guid']);
+        return  ok_msg('ok', $carInfo);
+    }
+
+    /**
+     * @Apidoc\Title("谁看过我列表")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
      * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
-    public function get_user_card(){
-        return  ok_msg('ok', $this->userInfo);
+    public function browse_me_lsit(){
+        $cardBrowse = new CardBrowse();
+        $browseList = $cardBrowse->browseMeLsit($this->params['guid']);
+        return  ok_msg('ok', $browseList);
     }
 }

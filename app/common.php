@@ -466,18 +466,58 @@ if (!function_exists('get_time_rand_code')) {
      *  根据当前时间戳加上随机数获取唯一code
      */
     function get_time_rand_code($prefix = '') {
-        return $prefix.time().rand(1000, 9999);
+        return $prefix.time().rand(100000, 999999);
     }
 }
 
 if (!function_exists('get_week_name')) {
     /*
-       *  根据某个时间戳获取当前是周几
-       */
+     *  根据某个时间戳获取当前是周几
+     */
     function get_week_name($time) {
+        $time = strtotime($time)?strtotime($time):$time;
         $weekarray=["周日","周一","周二","周三","周四","周五","周六"];
         $w = date('w', $time);
         return $weekarray[$w] ?? '';
+    }
+}
+
+if (!function_exists('get_time_early_name')) {
+    /*
+     *  根据某个时间戳获取当前是早中晚
+     */
+    function get_time_early_name($time) {
+        $time = strtotime($time)?strtotime($time):$time;
+        $g = date("G", $time);
+        $gstr = $g < 11?'早':($g < 13 ?'中午':($g < 18?'下午':'晚'));
+        return $gstr;
+    }
+}
+
+if (!function_exists('get_time_h')) {
+    /*
+     *  根据某个时间戳获取当前是早中晚
+     */
+    function get_time_h($time) {
+        $time = strtotime($time)?strtotime($time):$time;
+        $h = date("h", $time);
+        return $h < 10?trim($h, 0):$h;
+    }
+}
+
+if (!function_exists('get_pr_dates')) {
+    /*
+     *  获取两个日期间日期的集合
+     */
+    function get_pr_dates($start, $end) {
+        $dt_start = strtotime($start)?strtotime($start):$start;
+        $dt_end = strtotime($end)?strtotime($end):$end;
+        $result = [];
+        while ($dt_start <= $dt_end){
+            $result[] = date('Y-m-d', $dt_start);
+            $dt_start = strtotime('+1 day', $dt_start);
+        }
+        return $result;
     }
 }
 

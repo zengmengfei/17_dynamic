@@ -12,6 +12,7 @@ use hg\apidoc\annotation as Apidoc;
  */
 class Index extends ApiBase
 {
+    protected $noNeedLogin = ['venue_period_info'];
 
     public $params;
 
@@ -102,6 +103,29 @@ class Index extends ApiBase
         $venueModel = new Venue();
         $res = $venueModel->delVenue($this->params, $this->userInfo);
         return $res?ok_msg('删除场馆成功！', $res):err_msg('删除场馆失败');
+    }
+
+    /**
+     * @Apidoc\Title("获取场馆场次信息")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Param("venue_sn", type="string",require=true,desc="场馆唯一标识" )
+     */
+    public  function  venue_period_info(){
+        //数据验证
+        $validate = new Validate;
+        $validate->rule([
+            'venue_sn' => 'require',
+        ]);
+        $validate->message([
+            'venue_sn.require' => '场馆唯一标识不能为空',
+        ]);
+        if (!$validate->check($this->params)) {
+             base_msg($validate->getError());
+        }
+        $venueModel = new Venue();
+        $data = $venueModel->venuePeriodInfo($this->params);
+        return $data?ok_msg('查询成功！', $data):err_msg('场次信息不存在');
     }
 
 }

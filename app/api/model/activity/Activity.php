@@ -16,7 +16,7 @@ class Activity extends ApiBaseModel
 {
     protected $name = "activity";
 
-    protected $append = ['ac_status'];
+    protected $append = ['ac_status', 'date_str', 'image_url', 'week_str', 'interval_time_str'];
 
     const AC_STATUS_ARR = [
       10 => '未开始',
@@ -53,7 +53,7 @@ class Activity extends ApiBaseModel
         if (!isset(self::CADTARR[$cancel_apply_deadline_type])) {
             base_msg('请选择取消报名截止时间', 400);
         }
-        $activity_sn = get_time_rand_code('hd');
+        $activity_sn = get_time_rand_code('AC');
         $team_type = $param['team_type'] ?? 10;
         $total_num = $param['total_num'];
         $saveData = [
@@ -82,10 +82,12 @@ class Activity extends ApiBaseModel
             'entry_fee' => $param['entry_fee'],
             'cancel_apply_deadline_type' => $cancel_apply_deadline_type,
         ];
-        $saveData['activity_starttime'] = $param['activity_date'].' '.$param['activity_time'][0].':00';
-        $saveData['activity_endtime'] = $param['activity_date'].' '.$param['activity_time'][1].':00';
+        $starttime = $param['activity_date'].' '.$param['activity_time'][0].':00';
+        $endtime = $param['activity_date'].' '.$param['activity_time'][1].':00';
+        $saveData['activity_starttime'] = $starttime;
+        $saveData['activity_endtime'] = $endtime;
         if ($cancel_apply_deadline_type == 10) {
-            $saveData['cancel_apply_deadline_time'] = date('Y-m-d H:i:s', strtotime($saveData['activity_starttime']) - 2 * 3600);
+            $saveData['cancel_apply_deadline_time'] = date('Y-m-d H:i:s', strtotime($starttime) - 2 * 3600);
         }
         if (!empty($param['male_level'][0])) $saveData['male_min_level'] = $param['male_level'][0];
         if (!empty($param['male_level'][1])) $saveData['male_max_level'] = $param['male_level'][1];
@@ -100,13 +102,14 @@ class Activity extends ApiBaseModel
         $venueTimeDetail = $venueModel->getVenueTimeDetail($venue_sn);
         $saveData['venue_cost'] = $venueTimeDetail['venue_cost'];
         $saveData['venue_actual_cost'] = $venueTimeDetail['venue_actual_cost'];
-
+        $short_title = date('m.d', strtotime($param['activity_date'])).get_week_name($param['activity_date']).
+            get_time_early_name($starttime).get_time_h($starttime).'-'.get_time_h($endtime).'点'.(self::ACTIVITY_TYPE_ARR[$param['activity_type']] ?? '').'局';
+        $saveData['short_title'] = $short_title;
         Db::startTrans();
         try {
             self::save($saveData);
             // 添加消息频道
-            $channel_name = date('m.d', strtotime($param['activity_date'])).get_week_name(strtotime($param['activity_date'])).(self::ACTIVITY_TYPE_ARR[$param['activity_type']] ?? '').'局';
-            $channel_data = ['guid' => $param['guid'], 'related_sn' => $activity_sn, 'channel_type' => 20, 'channel_name' => $channel_name, 'greetings' => '这里是'.$channel_name.'群，待新的小伙伴加入群聊'];
+            $channel_data = ['guid' => $param['guid'], 'related_sn' => $activity_sn, 'channel_type' => 20, 'channel_name' => $short_title, 'greetings' => '这里是'.$short_title.'群，待新的小伙伴加入群聊'];
             $channel = new Channel();
             if (!$channel->createChannel($channel_data)) {
                 Db::rollback();
@@ -202,6 +205,8 @@ class Activity extends ApiBaseModel
             $detail['distance'] = '';
         }
         $detail['is_owner'] = $detail['is_apply'] = 0; // 是否发起人|是否已参加
+        $wxUser = new WxUser();
+        $detail['create_user'] = $wxUser->simpleInfo($detail['guid']);
         if (!empty($params['guid'])) {
             $applyModel = new Apply();
             if ($detail['guid'] == $params['guid']) $detail['is_owner'] = 1;
@@ -263,7 +268,13 @@ class Activity extends ApiBaseModel
 
     public function getCoverImgsAttr($value)
     {
-        return $value?explode(',', $value):'';
+        if (!$value) return $value;
+        $value = explode(',', $value);
+        $data = [];
+        foreach ($value as $item) {
+            $data[] = get_image_url($item);
+        }
+        return $data;
     }
 
     public function setCoverImgsAttr($value)
@@ -297,5 +308,21 @@ class Activity extends ApiBaseModel
         }
         return $ac_status;
 //        $this->setAttrs(['ac_status' => $ac_status, 'ac_status_str' => self::AC_STATUS_ARR[$ac_status]]);
+    }
+
+    public function getDateStrAttr() {
+        return date("m月d日", strtotime($this->activity_date));
+    }
+
+    public function getImageUrlAttr() {
+        return $this->cover_imgs[0] ?? '';
+    }
+
+    public function getWeekStrAttr() {
+        return get_week_name($this->activity_date);
+    }
+
+    public function getIntervalTimeStrAttr() {
+        return date('H:i', strtotime($this->activity_starttime)).'-'.date('H:i', strtotime($this->activity_endtime));
     }
 }

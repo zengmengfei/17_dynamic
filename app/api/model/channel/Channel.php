@@ -13,9 +13,9 @@ class Channel extends ApiBaseModel
 {
     protected $name = "channel";
     const CHANNEL_TYPE_ARR = [
-      10 => ['name' => '个人聊天', 'prefix' => 'gr'],
-      20 => ['name' => '活动群聊', 'prefix' => 'hd'],
-      30 => ['name' => '俱乐部群聊', 'prefix' => 'cb'],
+      10 => ['name' => '个人聊天', 'prefix' => 'GR'],
+      20 => ['name' => '活动群聊', 'prefix' => 'AC'],
+      30 => ['name' => '俱乐部群聊', 'prefix' => 'CB'],
     ];
 
     // 创建频道

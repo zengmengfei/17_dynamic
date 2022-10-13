@@ -3,6 +3,7 @@
 namespace app\api\controller\applet\activity;
 
 use app\api\model\activity\Activity;
+use app\api\model\activity\Apply;
 use app\api\model\activity\SignIn;
 use app\common\controller\ApiBase;
 use think\Validate;
@@ -108,6 +109,19 @@ class Index extends ApiBase
     public function get_activity_list() {
         $activityModel = new Activity();
         $list = $activityModel->getActivityList($this->params);
+        return ok_msg('查询成功', $list);
+    }
+
+    /**
+     * @Apidoc\Title("我的活动列表")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户guid" )
+     * @Apidoc\Returned("data", type="json", desc="用户数据")
+     */
+    public function my_activity_list() {
+        $applyModel = new Apply();
+        $list = $applyModel->myActivityList($this->params);
         return ok_msg('查询成功', $list);
     }
 
