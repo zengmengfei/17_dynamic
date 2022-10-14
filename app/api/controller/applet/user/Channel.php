@@ -54,7 +54,7 @@ class Channel extends ApiBase
             'channel_sn.require' => '消息频道sn不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+            base_msg($validate->getError());
         }
         $channelUser = new ChannelUser();
         $list = $channelUser->getChannelMessages($this->params, $this->userInfo);
@@ -68,7 +68,7 @@ class Channel extends ApiBase
      * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("channel_sn", type="string",require=true,desc="消息频道sn" )
      * @Apidoc\Param("type", type="int",require=true,desc="消息类型" )
-     * @Apidoc\Param("content", type="int",require=true,desc="消息内容" )
+     * @Apidoc\Param("content", type="string",require=true,desc="消息内容" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function add_channel_messages(){
@@ -83,7 +83,7 @@ class Channel extends ApiBase
             'content.require' => '消息内容不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+           base_msg($validate->getError());
         }
         $channelUser = new ChannelUser();
         $res = $channelUser->addChannelMessages($this->params, $this->userInfo);

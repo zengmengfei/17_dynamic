@@ -33,7 +33,7 @@ class Demo extends ApiBase
          ]);
          $params = request()->param();
          if (!$validate->check($params)) {
-             return err_msg($validate->getError());
+             base_msg($validate->getError());
          }
          $info = Db::name('tq_user')->where('guid',$params['guid'])->find();
          if(empty($info)){
@@ -62,7 +62,7 @@ class Demo extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')->where('mobile',$params['mobile'])->find();
         if(empty($info)){

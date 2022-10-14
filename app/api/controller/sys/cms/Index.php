@@ -170,7 +170,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $params['uu_guid'] = request()->header('guid','');
         //查询是是否点赞
@@ -219,7 +219,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $params['uu_guid']  = request()->header('guid','');
         $table = 'sys_cms_list_likes';
@@ -253,7 +253,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $params['uu_guid'] = request()->header('guid','');
         $table ="sys_cms_comment";
@@ -287,7 +287,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $table ="sys_cms_comment";
 

@@ -140,7 +140,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('mobile', $params['mobile'])
@@ -179,7 +179,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('gzh_openid', $params['openid'])
@@ -214,7 +214,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('xcx_openid', $params['openid'])
@@ -249,7 +249,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('qywx_user_id', $params['user_id'])
@@ -285,7 +285,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('union_id', $params['union_id'])
@@ -322,7 +322,7 @@ class Index extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')
             ->where('guid|mobile|idcard|xcx_openid|gzh_openid|union_id|qywx_user_id',$params['user_id'])

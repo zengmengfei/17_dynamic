@@ -55,7 +55,7 @@ class Index extends ApiBase
             'gender.require' => '用户性别不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+           base_msg($validate->getError());
         }
         $res = $this->wxUser->updateUser($this->params);
         return $res?ok_msg('更新成功！', $this->params):err_msg('更新用户信息失败');

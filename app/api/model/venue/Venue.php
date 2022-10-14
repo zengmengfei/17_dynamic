@@ -47,14 +47,12 @@ class Venue extends ApiBaseModel
 
 
     // 添加场馆
-    public function addVenue($params, $userInfo) {
+    public function saveVenue($params, $userInfo) {
         if (empty($userInfo['is_venue_manager']) && $userInfo['is_venue_manager'] != 1) {
-            base_msg('非场馆管理员不可添加场馆');exit;
+            base_msg('非场馆管理员不可添加场馆');
         }
-        $venue_sn = get_time_rand_code('CG');
+        $guid = $params['guid'];
         $saveData = [
-            'guid' => $params['guid'],
-            'venue_sn' => $venue_sn,
             'venue_name' => $params['venue_name'],
             'venue_address' => $params['venue_address'],
             'business_hours' => $params['business_hours'],
@@ -66,22 +64,79 @@ class Venue extends ApiBaseModel
             'city' => $params['city'],
             'district' => $params['district'],
         ];
-        return self::save($saveData);
+        $venue_sn = $params['venue_sn'] ?? '';
+        $details = $params['details'] ?? [];
+        $cover_data = [];
+        if (!empty($details)) {
+            // 如果存在场馆修改时间金额信息
+            foreach ($details as $item) {
+                if (empty($item['detail'])) continue;
+                $cover_data[] = ['date' => $item['date'], 'details' => $item['detail']];
+            }
+        }
+        $venueCoverModel = new VenueCover();
+        Db::startTrans();
+        try {
+            if (!empty($venue_sn)) {
+                $venueInfo = self::where(['venue_sn' => $venue_sn, 'guid' => $guid, 'mark' => 1])->find();
+                if (empty($venueInfo)) return false;
+                $venueInfo = $venueInfo->toArray();
+                self::update($saveData, ['id' => $venueInfo['id']]);
+                if (!empty($cover_data)) {
+                    foreach ($cover_data as $cd) {
+                        $cdInfo = $venueCoverModel->where(['venue_sn' => $venue_sn, 'date' => $cd['date'], 'mark' => 1])->find();
+                        if (empty($cdInfo)) {
+                            $venueCoverModel->save(['guid' => $guid, 'venue_sn' => $venue_sn, 'date' => $cd['date'], 'details' => $cd['details']]);
+                        } else {
+                            $venueCoverModel->update(['details' => $cd['details'], 'update_time' => time()], ['venue_sn' => $venue_sn, 'mark' => 1]);
+                        }
+                    }
+                }
+            } else {
+                $venue_sn = get_time_rand_code('CG');
+                $saveData['venue_sn'] = $venue_sn;
+                $saveData['guid'] = $guid;
+                self::save($saveData);
+                if (!empty($cover_data)) {
+                    $coverData = [];
+                    foreach ($cover_data as $cd) {
+                        $coverData[] = ['guid' => $guid, 'venue_sn' => $venue_sn, 'date' => $cd['date'], 'details' => $cd['details']];
+                    }
+                    $venueCoverModel->saveAll($coverData);
+                }
+            }
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            return false;
+        }
     }
 
     // 场馆列表
     public function userVenueList($params) {
-        return self::where(['guid' => $params['guid'], 'mark' => 1])->order(['create_time' => 'desc'])->select();
+        $list = self::where(['guid' => $params['guid'], 'mark' => 1])->order(['create_time' => 'desc'])->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        foreach ($list as &$v) {
+            if (!empty($params['longitude']) && !empty($params['latitude']) && !empty($v['longitude']) && !empty($v['latitude'])) {
+                $v['distance'] = get_distance($params['longitude'], $params['latitude'], $v['longitude'], $v['latitude']);
+            } else {
+                $v['distance'] = '';
+            }
+        }
+        return $list;
     }
 
     // 删除场馆
     public function delVenue($params, $userInfo) {
         if (empty($userInfo['is_venue_manager']) && $userInfo['is_venue_manager'] != 1) {
-            base_msg('非场馆管理员不可删除场馆');exit;
+            base_msg('非场馆管理员不可删除场馆');
         }
         $info = self::where(['venue_sn' => $params['venue_sn'], 'guid' => $params['guid'], 'mark' => 1])->find();
         if (empty($info)) {
-            base_msg('场馆信息不存在，删除失败');exit;
+            base_msg('场馆信息不存在，删除失败');
         }
         return self::where(['venue_sn' => $params['venue_sn']])->save(['mark' => 0]);
     }
@@ -93,21 +148,30 @@ class Venue extends ApiBaseModel
     }
 
     // 获取场馆场次信息
-    public function venuePeriodInfo($params) {
+    public function venuePeriodDetail($params) {
+        $venue_sn = $params['venue_sn'];
+        $venue_info = self::where(['venue_sn' => $venue_sn, 'mark' => 1])->find();
+        if (empty($venue_info)) base_msg('场馆信息不存在');
         $start_date = date('Y-m-d');
         $end_date = date('Y-m-d', strtotime('+1 month', strtotime($start_date)));
         $dates = get_pr_dates($start_date, $end_date);
         if (empty($dates)) return false;
         $activityModel = new Activity();
+        $venueCoverModel = new VenueCover();
         $data = [];
+        $cover_data = $venueCoverModel->getVenueCoverData($venue_sn);
         foreach ($dates as $date) {
-            $w = date('w', strtotime($date));
-            $period = self::VENUE_SETTING[$w];
+            if (isset($cover_data[$date])) {
+                $period = $cover_data[$date];
+            } else {
+                $w = date('w', strtotime($date));
+                $period = self::VENUE_SETTING[$w];
+            }
             if (empty($period)) continue;
             $min_price = $period[0]['price'];
             foreach ($period as $k => $v) {
                 $min_price = ($min_price > $v['price'])?$v['price']:$min_price;
-                $period[$k]['is_period'] = $this->checkPeriod($activityModel, $params['venue_sn'], $date, $v['time_str'])?1:0;
+                $period[$k]['is_period'] = $this->checkPeriod($activityModel, $venue_sn, $date, $v['time_str'])?1:0;
             }
             $item = [
                 'min_price' => $min_price,
@@ -117,7 +181,8 @@ class Venue extends ApiBaseModel
             ];
             $data[] = $item;
         }
-        return $data;
+        $venue_info['details'] = $data;
+        return $venue_info;
     }
 
     // 验证场次是否被预定

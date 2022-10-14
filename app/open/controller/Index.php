@@ -61,7 +61,7 @@ class Index extends OpenBase
         $params = request()->param();
         //halt($params);
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $table = 'log_open_' . date('Y') . '_' . date('m');
         $info = Db::name($table)

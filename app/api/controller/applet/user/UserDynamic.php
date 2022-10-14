@@ -97,7 +97,7 @@ class UserDynamic extends ApiBase
             'status.require' => '动态状态不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+            base_msg($validate->getError());
         }
         $dynamicModel = new Dynamic();
         $res = $dynamicModel->addDynamic($this->params);
@@ -126,7 +126,7 @@ class UserDynamic extends ApiBase
             'content.require' => '评论内容不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+            base_msg($validate->getError());
         }
         $commentModel = new DynamicComment();
         $res = $commentModel->addDynamicComment($this->params);

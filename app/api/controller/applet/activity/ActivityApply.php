@@ -55,7 +55,7 @@ class ActivityApply extends ApiBase
             'player_level.require' => '性别不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+            base_msg($validate->getError());
         }
         $applyModel = new Apply();
         $res = $applyModel->apply($this->params, $this->userInfo);

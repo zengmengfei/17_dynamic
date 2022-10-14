@@ -218,6 +218,8 @@ class Activity extends ApiBaseModel
     // 活动详情数据组装
     public function checkActivityDetail($detail) {
         if (empty($detail)) return $detail;
+        // 玩家等级
+        $playerLevelArr = [10 => '萌新', 20 => '熟练', 30 => '专业', 40 => '大神'];
         $male_num = $female_num = 0;
         $team_list = $team_one_list = $team_two_list = [];
         $applys = $detail['applys'];
@@ -232,6 +234,7 @@ class Activity extends ApiBaseModel
                 $temp = [
                     'guid' => $sv['guid'],
                     'player_level' => $sv['player_level'],
+                    'player_level_str' => isset($playerLevelArr[$sv['player_level']])?$playerLevelArr[$sv['player_level']]:'',
                     'nickname' => $sv['nickname'],
                     'gender' => $sv['gender'],
                     'avatar' => $sv['user']['avatar'],
@@ -257,8 +260,6 @@ class Activity extends ApiBaseModel
         $detail['team_two_list'] = $team_two_list;
         return $detail;
     }
-
-
 
     // 获取活动信息
     public function getActivityInfo($activity_sn) {

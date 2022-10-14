@@ -12,7 +12,7 @@ use hg\apidoc\annotation as Apidoc;
  */
 class Index extends ApiBase
 {
-    protected $noNeedLogin = ['venue_period_info'];
+    protected $noNeedLogin = ['venue_period_detail'];
 
     public $params;
 
@@ -37,12 +37,12 @@ class Index extends ApiBase
 
 
     /**
-     * @Apidoc\Title("添加场馆")
+     * @Apidoc\Title("添加更新场馆")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
      * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一标识" )
-     * @Apidoc\Param("venue_name", type="string",require=false,desc="场馆名" )
-     * @Apidoc\Param("venue_address", type="string",require=false,desc="场馆地址" )
+     * @Apidoc\Param("venue_name", type="string",require=true,desc="场馆名" )
+     * @Apidoc\Param("venue_address", type="string",require=true,desc="场馆地址" )
      * @Apidoc\Param("business_hours", type="string",require=true,desc="营业时间" )
      * @Apidoc\Param("principal_telephone", type="string",require=true,desc="联系电话" )
      * @Apidoc\Param("imgs", type="array",require=true,desc="场馆图片" )
@@ -51,8 +51,9 @@ class Index extends ApiBase
      * @Apidoc\Param("province", type="string",require=true,desc="省" )
      * @Apidoc\Param("city", type="string",require=true,desc="市" )
      * @Apidoc\Param("district", type="string",require=true,desc="区" )
+     * @Apidoc\Param("details", type="array",require=false,desc="场次信息" )
      */
-    public  function  add_venue(){
+    public  function  save_venue(){
         //数据验证
         $validate = new Validate;
         $validate->rule([
@@ -74,10 +75,10 @@ class Index extends ApiBase
             'latitude.require' => '场馆定位纬度不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+           base_msg($validate->getError());
         }
         $venueModel = new Venue();
-        $res = $venueModel->addVenue($this->params, $this->userInfo);
+        $res = $venueModel->saveVenue($this->params, $this->userInfo);
         return $res?ok_msg('添加场馆成功！', $res):err_msg('添加场馆失败');
     }
 
@@ -98,7 +99,7 @@ class Index extends ApiBase
             'venue_sn.require' => '场馆唯一标识不能为空',
         ]);
         if (!$validate->check($this->params)) {
-            return $validate->getError();
+           base_msg($validate->getError());
         }
         $venueModel = new Venue();
         $res = $venueModel->delVenue($this->params, $this->userInfo);
@@ -106,12 +107,12 @@ class Index extends ApiBase
     }
 
     /**
-     * @Apidoc\Title("获取场馆场次信息")
+     * @Apidoc\Title("获取场馆详情")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("GET")
      * @Apidoc\Param("venue_sn", type="string",require=true,desc="场馆唯一标识" )
      */
-    public  function  venue_period_info(){
+    public  function  venue_period_detail(){
         //数据验证
         $validate = new Validate;
         $validate->rule([
@@ -124,7 +125,7 @@ class Index extends ApiBase
              base_msg($validate->getError());
         }
         $venueModel = new Venue();
-        $data = $venueModel->venuePeriodInfo($this->params);
+        $data = $venueModel->venuePeriodDetail($this->params);
         return $data?ok_msg('查询成功！', $data):err_msg('场次信息不存在');
     }
 

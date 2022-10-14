@@ -31,7 +31,7 @@ class Login extends OpenBase
         ]);
         $params = request()->post();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('oauth_client')
             ->where('client_id', $params['AppId'])

@@ -52,7 +52,7 @@ class Participle extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
 
         Jieba::loadUserDict(public_path()."/static/fenci.txt");

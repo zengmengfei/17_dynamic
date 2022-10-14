@@ -120,6 +120,30 @@ class Apply extends ApiBaseModel
         return $newList;
     }
 
+    // 获取活动签到列表
+    public function signInList($params) {
+        $activity_sn = $params['activity_sn'];
+        $list = self::with(['signIn', 'user'])->where(['activity_sn' => $activity_sn, 'status' => 20, 'mark' => 1])->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        $new_list = [];
+        foreach ($list as $v) {
+            $item = [
+              'guid' => $v['guid'],
+              'nickname' => $v['nickname'],
+              'gender' => $v['gender'],
+              'avatar' => $v['user']['avatar'] ?? '',
+              'is_sign' => $v['signIn']?1:0,
+            ];
+            if ($item['is_sign'] == 1) {
+                $new_list['signed'][] = $item;
+            } else {
+                $new_list['not_sign'][] = $item;
+            }
+        }
+        return $new_list;
+    }
+
     public function user()
     {
         return $this->hasOne(WxUser::class, 'guid', 'guid')->field(['guid', 'avatar']);
@@ -133,5 +157,10 @@ class Apply extends ApiBaseModel
     public function activity()
     {
         return $this->hasOne(Activity::class, 'activity_sn', 'activity_sn');
+    }
+
+    public function signIn()
+    {
+        return $this->hasOne(SignIn::class, 'apply_sn', 'apply_sn')->where(['mark' => 1]);
     }
 }

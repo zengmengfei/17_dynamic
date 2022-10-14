@@ -40,7 +40,7 @@ class Sms extends ApiBase
         ]);
         $params = request()->param();
         if (!$validate->check($params)) {
-            return err_msg($validate->getError());
+            base_msg($validate->getError());
         }
         $info = Db::name('tq_user')->where('mobile',$params['mobile'])->find();
         if(!empty($info)){
