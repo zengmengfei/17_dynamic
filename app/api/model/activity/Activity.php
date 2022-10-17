@@ -126,7 +126,8 @@ class Activity extends ApiBaseModel
 
     // 活动列表
     public function getActivityList($param) {
-        $map = $order = [];
+        $map = [['mark', '=', 1]];
+        $order = [];
         if (!empty($param['activity_type'])) {
             $map[] = ['activity_type', '=', $param['activity_type']];
         }
@@ -145,6 +146,9 @@ class Activity extends ApiBaseModel
         }
         if (!empty($param['districts']) && is_array($param['districts'])) {
             $map[] = ['district', 'in', $param['districts']];
+        }
+        if (!empty($param['title']) && !empty(trim($param['title']))) {
+            $map[] = ['title', 'like', '%'.trim($param['title']).'%'];
         }
         $query = self::with(['user', 'applys' => function ($query) {
             $query->with(['user', 'userInfo']);

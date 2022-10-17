@@ -29,6 +29,7 @@ class DynamicComment extends ApiBaseModel
                 'dynamic_sn' => $param['dynamic_sn'],
                 'content' => $param['content'],
                 'parent_id' => $parent_id,
+                'top_id' => $param['top_id'] ?? 0,
             ];
             self::save($thumbSave);
             if (empty($parent_id)) {
@@ -46,14 +47,41 @@ class DynamicComment extends ApiBaseModel
     public function getDynamicComment($param) {
         $dynamic_sn = $param['dynamic_sn'];
         $list = self::with(['user','comments' => function($query) {
-            $query->with('user');
-        }])->where(['dynamic_sn' => $dynamic_sn, 'mark' => 1, 'parent_id' => 0])->order('create_time', 'desc')->select();
+            $query->with(['user', 'reply' => function($query) {
+                $query->with(['user']);
+            }]);
+        }])->where(['dynamic_sn' => $dynamic_sn, 'mark' => 1, 'parent_id' => 0, 'top_id' => 0])->order('create_time', 'desc')->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        foreach ($list as &$v) {
+            $v['nickname'] = $v['user']['nickname'] ?? '';
+            $v['avatar'] = $v['user']['avatar'] ?? '';
+            $cts = [];
+            if (!empty($v['comments'])) {
+                foreach ($v['comments'] as &$c) {
+                    $c['nickname'] = $c['user']['nickname'] ?? '';
+                    $c['avatar'] = $c['user']['avatar'] ?? '';
+                    $c['reply_guid'] = $c['reply']['guid'] ?? '' ;
+                    $c['reply_nickname'] = $c['reply']['user']['nickname'] ?? '' ;
+                    unset($c['user']);
+                    unset($c['reply']);
+                    $cts[] = $c;
+                }
+            }
+            unset($v['user']);
+            unset($v['comments']);
+            $v['childs'] = $cts;
+        }
         return $list;
+    }
+
+    public function reply() {
+        return $this->hasOne(DynamicComment::class, 'id', 'parent_id')->field('id,parent_id,guid');
     }
 
     public function comments()
     {
-        return $this->hasMany(DynamicComment::class, 'parent_id', 'id');
+        return $this->hasMany(DynamicComment::class, 'top_id', 'id');
     }
 
     public function user()

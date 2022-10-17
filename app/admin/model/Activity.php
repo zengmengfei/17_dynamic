@@ -60,6 +60,17 @@ class Activity extends BaseModel
         return $info;
     }
 
+    /**
+     * 获取缓存信息
+     * @author PENGKING
+     * @since: 2022/10/13
+     */
+    public function getInfoBySn($activity_sn)
+    {
+        $info = self::where(['activity_sn' => $activity_sn, 'mark' => 1])->find();
+        return $info;
+    }
+
     public function getCoverImgsAttr($value)
     {
         if (!$value) return $value;

@@ -105,13 +105,14 @@ class UserDynamic extends ApiBase
     }
 
     /**
-     * @Apidoc\Title("用户评论")
+     * @Apidoc\Title("用户发布评论")
      * @Apidoc\Author("pengking")
      * @Apidoc\Method("POST")
      * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一值" )
      * @Apidoc\Param("dynamic_sn", type="string",require=true,desc="动态唯一标识" )
      * @Apidoc\Param("content", type="string",require=true,desc="评论内容" )
-     * @Apidoc\Param("parent_id", type="int",require=false,desc="评论上级" )
+     * @Apidoc\Param("parent_id", type="int",require=false,desc="上级评论id" )
+     * @Apidoc\Param("top_id", type="int",require=false,desc="顶级评论id" )
      * @Apidoc\Returned("data", type="json", desc="用户数据")
      */
     public function add_dynamic_comment(){

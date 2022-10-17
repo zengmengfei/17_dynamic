@@ -66,12 +66,12 @@ class Venue extends ApiBaseModel
         ];
         $venue_sn = $params['venue_sn'] ?? '';
         $details = $params['details'] ?? [];
-        $cover_data = [];
+        $coverData = [];
         if (!empty($details)) {
             // 如果存在场馆修改时间金额信息
             foreach ($details as $item) {
                 if (empty($item['detail'])) continue;
-                $cover_data[] = ['date' => $item['date'], 'details' => $item['detail']];
+                $coverData[] = ['date' => $item['date'], 'details' => $item['detail']];
             }
         }
         $venueCoverModel = new VenueCover();
@@ -82,8 +82,8 @@ class Venue extends ApiBaseModel
                 if (empty($venueInfo)) return false;
                 $venueInfo = $venueInfo->toArray();
                 self::update($saveData, ['id' => $venueInfo['id']]);
-                if (!empty($cover_data)) {
-                    foreach ($cover_data as $cd) {
+                if (!empty($coverData)) {
+                    foreach ($coverData as $cd) {
                         $cdInfo = $venueCoverModel->where(['venue_sn' => $venue_sn, 'date' => $cd['date'], 'mark' => 1])->find();
                         if (empty($cdInfo)) {
                             $venueCoverModel->save(['guid' => $guid, 'venue_sn' => $venue_sn, 'date' => $cd['date'], 'details' => $cd['details']]);
@@ -97,9 +97,9 @@ class Venue extends ApiBaseModel
                 $saveData['venue_sn'] = $venue_sn;
                 $saveData['guid'] = $guid;
                 self::save($saveData);
-                if (!empty($cover_data)) {
+                if (!empty($coverData)) {
                     $coverData = [];
-                    foreach ($cover_data as $cd) {
+                    foreach ($coverData as $cd) {
                         $coverData[] = ['guid' => $guid, 'venue_sn' => $venue_sn, 'date' => $cd['date'], 'details' => $cd['details']];
                     }
                     $venueCoverModel->saveAll($coverData);
@@ -159,10 +159,10 @@ class Venue extends ApiBaseModel
         $activityModel = new Activity();
         $venueCoverModel = new VenueCover();
         $data = [];
-        $cover_data = $venueCoverModel->getVenueCoverData($venue_sn);
+        $coverData = $venueCoverModel->getVenueCoverData($venue_sn);
         foreach ($dates as $date) {
-            if (isset($cover_data[$date])) {
-                $period = $cover_data[$date];
+            if (isset($coverData[$date])) {
+                $period = $coverData[$date];
             } else {
                 $w = date('w', strtotime($date));
                 $period = self::VENUE_SETTING[$w];
@@ -193,6 +193,53 @@ class Venue extends ApiBaseModel
         $endtime = $date.' '.$end.':00';
         $count = $model->where(['venue_sn' => $venue_sn, 'activity_starttime' => $starttime, 'activity_endtime' => $endtime,'status' => 10, 'mark' => 1])->count();
         return ($count && $count > 0)?true:false;
+    }
+
+    public function getRandomList($randNum = 2) {
+        $list = self::where(['mark' => 1])->limit($randNum)->orderRaw("rand() , id DESC")->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        return $list;
+    }
+
+    public function getVenueList($params) {
+        $map = [['mark', '=', 1]];
+        $order = ['create_time' => 'desc'];
+        if (!empty($params['citys']) && is_array($params['citys'])) {
+            $map[] = ['city', 'in', $params['citys']];
+        }
+        if (!empty($params['districts']) && is_array($params['districts'])) {
+            $map[] = ['district', 'in', $params['districts']];
+        }
+        if (!empty($params['title']) && !empty(trim($params['title']))) {
+            $map[] = ['venue_name', 'like', '%'.trim($params['title']).'%'];
+        }
+        $query = self::where($map);
+        if (!empty($params['is_distance']) && $params['is_distance'] == 1 && !empty($params['longitude']) && !empty($params['latitude'])) {
+            // 距离我最近排序
+            $query = $query->fieldRaw("*,".$this->get_distance_sql($params['longitude'], $params['latitude'], 'distance_field'));
+            $order['distance_field'] = 'asc';
+        }
+        if (!empty($params['is_price']) && $params['is_price'] == 1) {
+            $order['lowest_price'] = 'asc';
+        }
+        $list = $query->order($order)->select();
+        if (empty($list)) return $list;
+        $list = $list->toArray();
+        foreach ($list as &$v) {
+            if (!empty($params['longitude']) && !empty($params['latitude']) && !empty($v['longitude']) && !empty($v['latitude'])) {
+                $v['distance'] = get_distance($params['longitude'], $params['latitude'], $v['longitude'], $v['latitude']);
+            } else {
+                $v['distance'] = '';
+            }
+        }
+        return $list;
+    }
+
+    // 经纬度排序sql组装
+    public function get_distance_sql($lat, $lng, $as_name = 'distance_field')
+    {
+        return sprintf('round(6371*sqrt( pow((PI()*(abs(`longitude`-%f))/180) * cos(PI()*(`longitude`+%f)/360),2) + pow((PI()*abs(`longitude`-%f)/180),2)),4) as %s', $lat, $lat, $lng, $as_name);
     }
 
     //获取场馆某一个时间段的详情

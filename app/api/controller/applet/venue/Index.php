@@ -12,7 +12,7 @@ use hg\apidoc\annotation as Apidoc;
  */
 class Index extends ApiBase
 {
-    protected $noNeedLogin = ['venue_period_detail'];
+    protected $noNeedLogin = ['venue_period_detail', 'get_venue_list'];
 
     public $params;
 
@@ -21,6 +21,22 @@ class Index extends ApiBase
         parent::initialize();
         $params = request()->param();
         $this->params = $params;
+    }
+
+    /**
+     * @Apidoc\Title("场馆列表")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("GET")
+     * @Apidoc\Param("title", type="string",require=false,desc="场馆名称" )
+     * @Apidoc\Param("citys", type="array",require=false,desc="所在成功" )
+     * @Apidoc\Param("districts", type="array",require=false,desc="所在区" )
+     * @Apidoc\Param("is_distance", type="int",require=false,desc="是否距离优先" )
+     * @Apidoc\Param("is_price", type="int",require=false,desc="是否价格优先" )
+     */
+    public  function  get_venue_list(){
+        $venueModel = new Venue();
+        $list = $venueModel->getVenueList($this->params);
+        return ok_msg('请求成功', $list);
     }
 
     /**

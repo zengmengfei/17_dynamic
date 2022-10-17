@@ -31,6 +31,14 @@ class Upload extends Backend
         if (!$result) {
             return message($error, false);
         }
+        $data = request()->param();
+        $isc = !empty($data['isc']) ? true:false;
+        $width = !empty($data['width']) ? $data['width']:0;
+        $height = !empty($data['height']) ? $data['height']:0;
+        if (empty($width) || empty($height)) {
+            $width = 750;
+            $height = 350;
+        }
         // 结果处理
         $list = [];
         foreach ($result as $key => $value) {
@@ -38,14 +46,18 @@ class Upload extends Backend
                 // 二维数组(多图上传)
                 foreach ($result as $key=>$val) {
                     $imgFile = Image::open('./uploads/'.$val['filepath']);
-                    $imgFile->thumb(750,350); //制作缩略图(750*350)
+                    if (!$isc) {
+                        $imgFile->thumb($width, $height); //制作缩略图(750*350)
+                    }
                     $imgFile->save('./uploads/'.$val['filepath'], $val['fileext'], 100);
                     $list[$key]['img_url'] = env('DOMAIN.IMG_URL') . $val['filepath'];
                 }
             } else {
                 // 一维数组(单图上传)
                 $imgFile = Image::open('./uploads/'.$result['filepath']);
-                $imgFile->thumb(750,350); //制作缩略图(750*350)
+                if (!$isc) {
+                    $imgFile->thumb($width, $height); //制作缩略图(750*350)
+                }
                 $imgFile->save('./uploads/' . $result['filepath'], $result['fileext'], 100);
                 $list = IMG_URL . $result['filepath'];
             }

@@ -197,8 +197,8 @@ return [
 
                         ['title'=>'微信','name'=>'weixin'],
                         ['title'=>'用户','name'=>'user'],
+                        ['title'=>'首页','name'=>'index'],
                         ['title'=>'其他','name'=>'sys'],
-
                     ]],
                 ['title'=>'功能','name'=>'fun'],
                 ['title'=>'接口生成','name'=>'auto'],
