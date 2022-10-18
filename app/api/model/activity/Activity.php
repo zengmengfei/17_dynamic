@@ -38,20 +38,24 @@ class Activity extends ApiBaseModel
     // 添加标签
     public function addActivity($param, $userInfo) {
         if (empty($userInfo['is_certification']) && $userInfo['is_certification'] != 1) {
-            base_msg('未进行实名认证不可添加活动', 400);
+            base_msg('未进行实名认证不可添加活动');
         }
         $venue_sn = $param['venue_sn'];
         $venueModel = new Venue();
         $venueInfo = $venueModel->getVenueInfo($venue_sn);
         if (empty($venueInfo)) {
-            base_msg('场馆信息不存在', 400);
+            base_msg('场馆信息不存在');
         }
         if (empty($param['activity_time'][0]) || empty($param['activity_time'][1])) {
-            base_msg('请正确选择活动时间', 400);
+            base_msg('请正确选择活动时间');
+        }
+        $time_str = implode('-', $param['activity_time']);
+        if ($this->checkPeriod($venue_sn, $param['activity_date'], $time_str)) {
+            base_msg('该场馆场次已被预定');
         }
         $cancel_apply_deadline_type = $param['cancel_apply_deadline_type'] ?? 0;
         if (!isset(self::CADTARR[$cancel_apply_deadline_type])) {
-            base_msg('请选择取消报名截止时间', 400);
+            base_msg('请选择取消报名截止时间');
         }
         $activity_sn = get_time_rand_code('AC');
         $team_type = $param['team_type'] ?? 10;
@@ -99,7 +103,7 @@ class Activity extends ApiBaseModel
             }
             $saveData['team_one_num'] = $saveData['team_two_num'] = $total_num / 2;
         }
-        $venueTimeDetail = $venueModel->getVenueTimeDetail($venue_sn);
+        $venueTimeDetail = $venueModel->getVenueTimeDetail($venue_sn, $saveData['activity_date'], $time_str);
         $saveData['venue_cost'] = $venueTimeDetail['venue_cost'];
         $saveData['venue_actual_cost'] = $venueTimeDetail['venue_actual_cost'];
         $short_title = date('m.d', strtotime($param['activity_date'])).get_week_name($param['activity_date']).

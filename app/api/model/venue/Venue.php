@@ -156,7 +156,6 @@ class Venue extends ApiBaseModel
         $end_date = date('Y-m-d', strtotime('+1 month', strtotime($start_date)));
         $dates = get_pr_dates($start_date, $end_date);
         if (empty($dates)) return false;
-        $activityModel = new Activity();
         $venueCoverModel = new VenueCover();
         $data = [];
         $coverData = $venueCoverModel->getVenueCoverData($venue_sn);
@@ -171,7 +170,7 @@ class Venue extends ApiBaseModel
             $min_price = $period[0]['price'];
             foreach ($period as $k => $v) {
                 $min_price = ($min_price > $v['price'])?$v['price']:$min_price;
-                $period[$k]['is_period'] = $this->checkPeriod($activityModel, $venue_sn, $date, $v['time_str'])?1:0;
+                $period[$k]['is_period'] = $this->checkPeriod($venue_sn, $date, $v['time_str'])?1:0;
             }
             $item = [
                 'min_price' => $min_price,
@@ -186,13 +185,16 @@ class Venue extends ApiBaseModel
     }
 
     // 验证场次是否被预定
-    public function checkPeriod($model, $venue_sn, $date, $time_str) {
+    public function checkPeriod($venue_sn, $date, $time_str) {
         if (empty($venue_sn) || empty($date) || empty($time_str)) return false;
+        $activityModel = new Activity();
+        $reserveModel = new VenueReserve();
         list($start, $end) = explode('-', $time_str);
         $starttime = $date.' '.$start.':00';
         $endtime = $date.' '.$end.':00';
-        $count = $model->where(['venue_sn' => $venue_sn, 'activity_starttime' => $starttime, 'activity_endtime' => $endtime,'status' => 10, 'mark' => 1])->count();
-        return ($count && $count > 0)?true:false;
+        $count1 = $activityModel->where(['venue_sn' => $venue_sn, 'activity_date' => $date, 'activity_starttime' => $starttime, 'activity_endtime' => $endtime,'status' => 10, 'mark' => 1])->count();
+        $count2 = $reserveModel->where(['venue_sn' => $venue_sn, 're_date' => $date, 're_starttime' => $starttime, 're_endtime' => $endtime, 're_status' => 20, 'mark' => 1])->count();
+        return ($count1 > 0 || $count2 > 0)?true:false;
     }
 
     public function getRandomList($randNum = 2) {
@@ -243,8 +245,26 @@ class Venue extends ApiBaseModel
     }
 
     //获取场馆某一个时间段的详情
-    public function getVenueTimeDetail($venue_sn) {
-        return ['venue_cost' => 500, 'venue_actual_cost' => 350]; // 测试数据
+    public function getVenueTimeDetail($venue_sn, $date, $time_str) {
+        $vcModel = new VenueCover();
+        $vcData = $vcModel->vcDataByDate($venue_sn, $date);
+        $vtDetail = [];
+        if (!empty($vcData['details'])) {
+            $period = $vcData['details'];
+        } else {
+            $w = date('w', strtotime($date));
+            $period = self::VENUE_SETTING[$w];
+        }
+        if (!empty($period)) {
+            foreach ($period as $detail) {
+                if ($detail['time_str'] == $time_str) {
+                    $vtDetail = ['venue_cost' => $detail['price'], 'venue_actual_cost' => $detail['price']];
+                    break;
+                }
+            }
+        }
+        if (empty($vtDetail)) base_msg('该场馆时间段价格未设置');
+        return $vtDetail;
     }
 
     public function getImgsAttr($value)

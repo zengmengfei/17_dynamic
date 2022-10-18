@@ -38,4 +38,10 @@ class VenueCover extends ApiBaseModel
         return $newData;
     }
 
+
+    // 获取场馆当天的场次详情
+    public function vcDataByDate($venue_sn, $date) {
+        $info = self::where(['venue_sn' => $venue_sn, 'date' => $date, 'mark' => 1])->find();
+        return $info?$info->toArray():$info;
+    }
 }

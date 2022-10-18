@@ -3,6 +3,7 @@
 namespace app\api\controller\applet\venue;
 
 use app\api\model\venue\Venue;
+use app\api\model\venue\VenueReserve;
 use app\common\controller\ApiBase;
 use think\Validate;
 use hg\apidoc\annotation as Apidoc;
@@ -145,4 +146,33 @@ class Index extends ApiBase
         return $data?ok_msg('查询成功！', $data):err_msg('场次信息不存在');
     }
 
+    /**
+     * @Apidoc\Title("场馆预定")
+     * @Apidoc\Author("pengking")
+     * @Apidoc\Method("POST")
+     * @Apidoc\Param("guid", type="string",require=true,desc="用户唯一标识" )
+     * @Apidoc\Param("venue_sn", type="string",require=true,desc="场馆唯一标识" )
+     * @Apidoc\Param("re_date", type="string",require=true,desc="预定日期" )
+     * @Apidoc\Param("re_time", type="array",require=true,desc="预定开始结束时间" )
+     */
+    public  function  venue_reserve(){
+        //数据验证
+        $validate = new Validate;
+        $validate->rule([
+            'venue_sn' => 'require',
+            're_date' => 'require',
+            're_time' => 'require',
+        ]);
+        $validate->message([
+            'venue_sn.require' => '场馆唯一标识不能为空',
+            're_date.require' => '预定日期不能为空',
+            're_time.require' => '预定时间不能为空',
+        ]);
+        if (!$validate->check($this->params)) {
+            base_msg($validate->getError());
+        }
+        $venueModel = new VenueReserve();
+        $res = $venueModel->addVenueReserve($this->params);
+        return $res?ok_msg('预定成功！'):err_msg('预定失败');
+    }
 }
